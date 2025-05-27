@@ -10,8 +10,8 @@ import {
   type GetOperation,
   type IndexConfig,
   type SearchItem,
-} from './base.js';
-import { tokenizePath, getTextAtPath } from "./utils.js";
+} from '../../checkpoint/src/store/base.js';
+import { tokenizePath, getTextAtPath } from '../../checkpoint/src/store/utils.js';
 
 const { Pool } = pkg;
 
