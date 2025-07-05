@@ -975,7 +975,6 @@ export class Threads {
       updateConfig.configurable ??= {};
       updateConfig.configurable.checkpoint_ns ??= "";
 
-      console.log(`we are calling post to update state`)
       const nextConfig = await graph.updateState(updateConfig, values, asNode);
       const state = await Threads.State.get(config, { subgraphs: false }, auth);
 
@@ -1040,7 +1039,6 @@ export class Threads {
       updateConfig.configurable ??= {};
       updateConfig.configurable.checkpoint_ns ??= "";
 
-      console.log(`we are calling bulk update state`)
       const nextConfig = await graph.bulkUpdateState(
         updateConfig,
         supersteps.map((i) => ({
@@ -1229,11 +1227,8 @@ export class Runs {
 
     const now = new Date();
 
-    console.log(`metadata is...`)
-    console.log(metadata)
     if (!existingThread && (threadId == null || ifNotExists === "create")) {
       threadId ??= uuid4();
-      console.log(`the thread not exists!`)
       const thread: Thread = {
         thread_id: threadId,
         status: "busy",
@@ -1255,7 +1250,6 @@ export class Runs {
       await Threads.storage.put({ key: threadId, model: thread });
 
     } else if (existingThread) {
-      console.log(`the thread already exists!`)
       if (existingThread.status !== "busy") {
         existingThread.status = "busy";
         existingThread.metadata = Object.assign({}, existingThread.metadata, {
@@ -1344,11 +1338,7 @@ export class Runs {
       updated_at: now,
     };
 
-    console.log(`updating run with: `, newRun.metadata)
     await Runs.storage.put({ key: runId, model: newRun });
-    const run = await Runs.storage.get({ key: runId });
-    console.log(`stored run metadata`)
-    console.log(run?.metadata)
     return [newRun, ...inflightRuns];
   }
 

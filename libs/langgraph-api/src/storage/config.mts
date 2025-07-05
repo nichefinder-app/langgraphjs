@@ -62,7 +62,7 @@ export const reload = async (): Promise<StorageConfig> => {
         );
         await conn.initialize(".");
         storageConfig.PERSISTENCE = conn;
-    } else if (storageConfig.PERSISTENCE_TYPE === "postgres") {
+    } else {
         const pool = new pg.Pool({
             connectionString: storageConfig.POSTGRES_URI_CUSTOM,
             max: storageConfig.LANGGRAPH_POSTGRES_POOL_MAX_SIZE,
@@ -78,4 +78,4 @@ export const reload = async (): Promise<StorageConfig> => {
 
 await reload();
 
-export const persistence = storageConfig.PERSISTENCE;
+export const persistence = storageConfig.PERSISTENCE!;

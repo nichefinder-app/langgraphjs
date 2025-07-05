@@ -178,6 +178,10 @@ export class PostgresPersistence {
     this.options = _ensureCompleteOptions(options);
   }
 
+  async flush(): Promise<boolean> {
+    return Promise.resolve(true);
+  }
+
   /**
    * Set up the database asynchronously.
    *

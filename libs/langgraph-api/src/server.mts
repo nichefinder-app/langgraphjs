@@ -15,7 +15,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { queue } from "./queue.mjs";
 import { logger, requestLogger } from "./logging.mjs";
-import { checkpointer } from "./storage/checkpoint/memory.mjs";
+import { checkpointer } from "./storage/checkpoint.mjs";
 import { store as graphStore } from "./storage/store.mjs";
 import { auth } from "./auth/custom.mjs";
 import { registerAuth } from "./auth/index.mjs";
@@ -106,6 +106,7 @@ export async function startServer(options: z.infer<typeof StartServerSchema>) {
         assistants: z.boolean().optional(),
         checkpointer: z.boolean().optional(),
         store: z.boolean().optional(),
+        full: z.boolean().optional(),
       })
     ),
     async (c) => {

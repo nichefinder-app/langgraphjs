@@ -6,6 +6,7 @@ import {
 
 export interface Store {
     initialize(cwd: string): Promise<Store>;
+    flush(): Promise<boolean>;
     clear(): Promise<void> | void;
     batch<Op extends Operation[]>(operations: Op): Promise<OperationResults<Op>>;
     get(...args: Parameters<BaseMemoryStore["get"]>): ReturnType<BaseMemoryStore["get"]>;

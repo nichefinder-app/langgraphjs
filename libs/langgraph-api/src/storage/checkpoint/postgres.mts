@@ -30,6 +30,10 @@ export class PostgresSaver extends CorePostgresSaver implements APISaver {
         return this;
     }
 
+    async flush() {
+        return Promise.resolve(true)
+    }
+
     private async runApiMigrations(): Promise<void> {
         // @ts-ignore - We have access to pool.connect
         const client = await this.pool.connect();
