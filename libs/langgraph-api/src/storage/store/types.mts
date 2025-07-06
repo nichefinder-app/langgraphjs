@@ -11,6 +11,7 @@ export interface StoreInterface {
     get(...args: Parameters<BaseMemoryStore["get"]>): ReturnType<BaseMemoryStore["get"]>;
     search(...args: Parameters<BaseMemoryStore["search"]>): ReturnType<BaseMemoryStore["search"]>;
     put(...args: Parameters<BaseMemoryStore["put"]>): ReturnType<BaseMemoryStore["put"]>;
+    delete(...args: Parameters<BaseMemoryStore["delete"]>): ReturnType<BaseMemoryStore["delete"]>;
     listNamespaces(...args: Parameters<BaseMemoryStore["listNamespaces"]>): ReturnType<BaseMemoryStore["listNamespaces"]>;
     start(): void;
     stop(): void;

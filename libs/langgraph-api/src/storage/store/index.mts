@@ -57,6 +57,12 @@ export class Store implements StoreInterface {
     return adapter.listNamespaces(...args);
   }
 
+  async delete(...args: Parameters<StoreInterface["delete"]>): ReturnType<StoreInterface["delete"]> {
+    const adapter = this.adapter();
+    this.log("delete");
+    return adapter.delete(...args);
+  }
+
   start() {
     const adapter = this.adapter();
     return adapter.start();

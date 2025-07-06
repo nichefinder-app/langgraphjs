@@ -69,6 +69,7 @@ export class InMemorySaver extends MemorySaver implements APISaver {
   async *list(
     ...args: Parameters<MemorySaver["list"]>
   ): ReturnType<MemorySaver["list"]> {
+    console.log(`hello world i was called with list`)
     yield* conn.withGenerator(super.list(...args));
   }
 
