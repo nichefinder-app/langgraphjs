@@ -1,4 +1,4 @@
-import * as pg from "pg";
+import pg from "pg";
 import { Redis } from "ioredis";
 import { Store } from "./types/store.mjs";
 import { FileSystemPersistence } from "./persist.mjs";
