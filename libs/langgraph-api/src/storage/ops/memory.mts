@@ -213,10 +213,6 @@ export class MemoryAdapter<ModelType extends Record<string, any>> implements Ops
 
       const key = this.normalizeKey(options.key) ?? this.getModelKey(options.model);
       (STORE[this.table] as any)[key] = options.model;
-      await this.conn.flush();
-      if (this.table === `threads`) {
-        console.log(`should have inserted model`, options.model)
-      }
       return options.model;
     });
   }

@@ -836,7 +836,6 @@ export class Threads {
   }
 
   static async truncate(full: boolean = false) {
-    console.log(`received thread truncate`)
     return Threads.storage.truncate();
   }
 
@@ -1097,13 +1096,11 @@ export class Threads {
           : options?.before;
 
       const states: LangGraphStateSnapshot[] = [];
-      console.log(`do we even have any states?`)
       for await (const state of graph.getStateHistory(config, {
         limit: options?.limit ?? 10,
         before,
         filter: options?.metadata,
       })) {
-        console.log(state)
         states.push(state);
       }
 

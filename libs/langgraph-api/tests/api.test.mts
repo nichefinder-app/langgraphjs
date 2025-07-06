@@ -721,19 +721,9 @@ describe("runs", () => {
     expect(runs.length).toBe(1);
   });
 
-  it.only.concurrent("stream values", async () => {
-    // Initialize persistence with correct working directory
-    let ops = JSON.parse(fs.readFileSync("/Users/brettshollenberger/programming/business/tools/langgraphjs/libs/langgraph-api/tests/graphs/.langgraph_api/.langgraphjs_ops.json", "utf-8"));
-    console.log(`threads were trunc? ${Object.keys(ops.json.threads).length === 0}`)
-    console.log(Threads.storage.adapters.memory.conn.filepath)
-
+  it.concurrent("stream values", async () => {
     const assistant = await client.assistants.create({ graphId: "agent" });
     const thread = await client.threads.create();
-    console.log(`here is thread`, thread)
-
-    console.log(`should be saved to filepath`, Threads.storage.adapters.memory?.conn.filepath)
-    ops = JSON.parse(fs.readFileSync(Threads.storage.adapters.memory?.conn.filepath as string, "utf-8"));
-    console.log(`thread created?`, ops.json.threads)
     const input = {
       messages: [{ type: "human", content: "foo", id: "initial-message" }],
     };
@@ -773,8 +763,6 @@ describe("runs", () => {
 
     if (IS_MEMORY) {
       const runCheckpoints = await client.threads.getHistory(thread.thread_id);
-      const runCheckpointsOrig = await client.threads.getHistory(thread.thread_id);
-      console.log("runCheckpointsOrig", runCheckpointsOrig)
       expect(runCheckpoints.length).toBeGreaterThan(1);
     } else {
       const sql = postgres(
