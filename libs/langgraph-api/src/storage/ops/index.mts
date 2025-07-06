@@ -21,59 +21,60 @@ export class StorageOps<ModelType extends Record<string, any>> {
   constructor(table: keyof Store, primaryKey: string) {
     this.table = table;
     this.primaryKey = primaryKey;
-    const conn = storageConfig.PERSISTENCE;
-
-    if (storageConfig.PERSISTENCE_TYPE === "memory") {
-      this.adapters.memory = new MemoryAdapter<ModelType>(conn as FileSystemPersistence<Store>, this.table as keyof Store, this.primaryKey);
-    } else {
-      this.adapters.postgres = new PostgresAdapter<ModelType>(conn as PostgresPersistence, this.table as keyof Store, this.primaryKey)
-    }
   }
 
   async all(): Promise<ModelType[]> {
     const adapter = await this.adapter();
-    return adapter!.all();
+    return adapter.all();
   }
 
   async get(options: GET_OPTIONS): Promise<ModelType | null> {
     const adapter = await this.adapter();
-    return adapter!.get(options);
+    return adapter.get(options);
   }
 
   async *search(options: SEARCH_OPTIONS = {}): AsyncGenerator<SearchResponse<ModelType>> {
     const adapter = await this.adapter();
-    yield* (adapter as any).search(options);
+    yield* adapter.search(options);
   }
 
   async where(options: SEARCH_OPTIONS = {}): Promise<ModelType[]> {
     const adapter = await this.adapter();
-    return adapter!.where(options);
+    return adapter.where(options);
   }
 
   async put(options: PUT_OPTIONS<ModelType>): Promise<ModelType | null> {
     const adapter = await this.adapter();
-    return adapter!.put(options);
+    return adapter.put(options);
   }
 
   async patch(options: PATCH_OPTIONS<ModelType>): Promise<ModelType> {
     const adapter = await this.adapter();
-    return adapter!.patch(options);
+    return adapter.patch(options);
   }
 
   async delete(options: DELETE_OPTIONS): Promise<boolean> {
     const adapter = await this.adapter();
-    return adapter!.delete(options);
+    return adapter.delete(options);
   }
 
   async truncate(): Promise<void> {
     const adapter = await this.adapter();
-    return adapter!.truncate();
+    return adapter.truncate();
   }
 
   private async adapter() {
     if (storageConfig.PERSISTENCE_TYPE === "memory") {
+      if (!this.adapters.memory) {
+        const conn = storageConfig.PERSISTENCE;
+        this.adapters.memory = new MemoryAdapter<ModelType>(conn as FileSystemPersistence<Store>, this.table as keyof Store, this.primaryKey);
+      }
       return this.adapters.memory;
     } else {
+      if (!this.adapters.postgres) {
+        const conn = storageConfig.PERSISTENCE;
+        this.adapters.postgres = new PostgresAdapter<ModelType>(conn as PostgresPersistence, this.table as keyof Store, this.primaryKey);
+      }
       return this.adapters.postgres;
     }
   }

@@ -163,7 +163,6 @@ describe("assistants", () => {
 
     const graphid = "agent";
     const create = await client.assistants.create({ graphId: "agent" });
-    console.log(`created boiioynog`, create)
 
     search = await client.assistants.search();
     expect(search.length).toBeGreaterThanOrEqual(2);

@@ -113,7 +113,7 @@ export async function startServer(options: z.infer<typeof StartServerSchema>) {
       const { runs, threads, assistants, checkpointer, store, full } =
         c.req.valid("json");
 
-      truncate({ runs, threads, assistants, checkpointer, store, full });
+      await truncate({ runs, threads, assistants, checkpointer, store, full });
       if (assistants && full) {
         await registerFromEnv(options.graphs, { cwd: options.cwd })
       }
