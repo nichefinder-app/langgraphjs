@@ -11,49 +11,49 @@ export class Store implements StoreInterface {
 
   async initialize(...args: Parameters<StoreInterface["initialize"]>): ReturnType<StoreInterface["initialize"]> {
     const adapter = await this.adapter();
-    logger.debug(`[${this.implementation()}]#initialize`)
+    this.log("initialize");
     return adapter.initialize(...args);
   }
 
   async flush(...args: Parameters<StoreInterface["flush"]>): ReturnType<StoreInterface["flush"]> {
     const adapter = await this.adapter();
-    logger.debug(`[${this.implementation()}]#flush`)
+    this.log("flush");
     return adapter.flush(...args);
   }
 
   async clear(...args: Parameters<StoreInterface["clear"]>): Promise<void> {
     const adapter = await this.adapter();
-    logger.debug(`[${this.implementation()}]#clear`)
+    this.log("clear");
     return adapter.clear(...args);
   }
 
   async batch<Op extends Operation[]>(operations: Op): Promise<OperationResults<Op>> {
     const adapter = await this.adapter();
-    logger.debug(`[${this.implementation()}]#debug`)
+    this.log("batch");
     return adapter.batch(operations);
   }
 
   async get(...args: Parameters<StoreInterface["get"]>): ReturnType<StoreInterface["get"]> {
     const adapter = await this.adapter();
-    logger.debug(`[${this.implementation()}]#get`)
+    this.log("get");
     return adapter.get(...args);
   }
 
   async search(...args: Parameters<StoreInterface["search"]>): ReturnType<StoreInterface["search"]> {
     const adapter = await this.adapter();
-    logger.debug(`[${this.implementation()}]#search`)
+    this.log("search");
     return adapter.search(...args);
   }
 
   async put(...args: Parameters<StoreInterface["put"]>): ReturnType<StoreInterface["put"]> {
     const adapter = await this.adapter();
-    logger.debug(`[${this.implementation()}]#put`)
+    this.log("put");
     return adapter.put(...args);
   }
 
   async listNamespaces(...args: Parameters<StoreInterface["listNamespaces"]>): ReturnType<StoreInterface["listNamespaces"]> {
     const adapter = await this.adapter();
-    logger.debug(`[${this.implementation()}]#listNamespaces`)
+    this.log("listNamespaces");
     return adapter.listNamespaces(...args);
   }
 
@@ -63,6 +63,12 @@ export class Store implements StoreInterface {
     } else {
         return "memory";
     }
+  }
+
+  private log(method: string) {
+    const implName = this.implementation();
+    const capitalized = implName.charAt(0).toUpperCase() + implName.slice(1);
+    logger.debug(`[${capitalized}Store]#${method}`)
   }
 
   private async adapter(): Promise<StoreInterface> {
