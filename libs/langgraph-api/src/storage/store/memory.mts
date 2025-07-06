@@ -4,7 +4,7 @@ import {
   type OperationResults,
 } from "@langchain/langgraph";
 import { FileSystemPersistence } from "../persist.mjs";
-import { Store } from "./types.mjs";
+import { StoreInterface } from "./types.mjs";
 
 const conn = new FileSystemPersistence<{
   data: Map<string, any>;
@@ -14,8 +14,8 @@ const conn = new FileSystemPersistence<{
   vectors: new Map(),
 }));
 
-export class InMemoryStore extends BaseMemoryStore implements Store {
-  async initialize(cwd: string): Promise<Store> {
+export class InMemoryStore extends BaseMemoryStore implements StoreInterface {
+  async initialize(cwd: string): Promise<StoreInterface> {
     await conn.initialize(cwd);
     await conn.with(({ data, vectors }) => {
       Object.assign(this, { data, vectors });
@@ -68,5 +68,15 @@ export class InMemoryStore extends BaseMemoryStore implements Store {
   toJSON() {
     // Prevent serialization of internal state
     return "[InMemoryStore]";
+  }
+
+  async start(): Promise<void> {
+    // No-op for memory store
+    return Promise.resolve();
+  }
+
+  async stop(): Promise<void> {
+    // No-op for memory store
+    return Promise.resolve();
   }
 }

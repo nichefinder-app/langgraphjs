@@ -1,8 +1,8 @@
 import { PostgresStore as BasePostgresStore } from "@langchain/langgraph-store-postgres";
-import { Store } from "./types.mjs";
+import { StoreInterface } from "./types.mjs";
 
-export class PostgresStore extends BasePostgresStore implements Store {
-    async initialize(cwd: string): Promise<Store> {
+export class PostgresStore extends BasePostgresStore implements StoreInterface {
+    async initialize(cwd: string): Promise<StoreInterface> {
         await this.setup();
         return this;
     }

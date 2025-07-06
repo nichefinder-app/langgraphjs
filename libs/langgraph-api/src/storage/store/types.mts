@@ -12,4 +12,7 @@ export interface StoreInterface {
     search(...args: Parameters<BaseMemoryStore["search"]>): ReturnType<BaseMemoryStore["search"]>;
     put(...args: Parameters<BaseMemoryStore["put"]>): ReturnType<BaseMemoryStore["put"]>;
     listNamespaces(...args: Parameters<BaseMemoryStore["listNamespaces"]>): ReturnType<BaseMemoryStore["listNamespaces"]>;
+    start(): void;
+    stop(): void;
+    end(): void;
 }

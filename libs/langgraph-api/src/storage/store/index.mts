@@ -16,45 +16,60 @@ export class Store implements StoreInterface {
   }
 
   async flush(...args: Parameters<StoreInterface["flush"]>): ReturnType<StoreInterface["flush"]> {
-    const adapter = await this.adapter();
+    const adapter = this.adapter();
     this.log("flush");
     return adapter.flush(...args);
   }
 
   async clear(...args: Parameters<StoreInterface["clear"]>): Promise<void> {
-    const adapter = await this.adapter();
+    const adapter = this.adapter();
     this.log("clear");
     return adapter.clear(...args);
   }
 
   async batch<Op extends Operation[]>(operations: Op): Promise<OperationResults<Op>> {
-    const adapter = await this.adapter();
+    const adapter = this.adapter();
     this.log("batch");
     return adapter.batch(operations);
   }
 
   async get(...args: Parameters<StoreInterface["get"]>): ReturnType<StoreInterface["get"]> {
-    const adapter = await this.adapter();
+    const adapter = this.adapter();
     this.log("get");
     return adapter.get(...args);
   }
 
   async search(...args: Parameters<StoreInterface["search"]>): ReturnType<StoreInterface["search"]> {
-    const adapter = await this.adapter();
+    const adapter = this.adapter();
     this.log("search");
     return adapter.search(...args);
   }
 
   async put(...args: Parameters<StoreInterface["put"]>): ReturnType<StoreInterface["put"]> {
-    const adapter = await this.adapter();
+    const adapter = this.adapter();
     this.log("put");
     return adapter.put(...args);
   }
 
   async listNamespaces(...args: Parameters<StoreInterface["listNamespaces"]>): ReturnType<StoreInterface["listNamespaces"]> {
-    const adapter = await this.adapter();
+    const adapter = this.adapter();
     this.log("listNamespaces");
     return adapter.listNamespaces(...args);
+  }
+
+  start() {
+    const adapter = this.adapter();
+    return adapter.start();
+  }
+
+  stop() {
+    const adapter = this.adapter();
+    return adapter.stop();
+  }
+
+  end() {
+    const adapter = this.adapter();
+    return adapter.end();
   }
 
   private implementation(): string {
@@ -71,7 +86,7 @@ export class Store implements StoreInterface {
     logger.debug(`[${capitalized}Store]#${method}`)
   }
 
-  private async adapter(): Promise<StoreInterface> {
+  private adapter(): StoreInterface {
     const impl = this.implementation();
 
     if (impl == "postgres") {
@@ -82,12 +97,12 @@ export class Store implements StoreInterface {
         schema: storageConfig.POSTGRES_SCHEMA
       }
       this.adapters.postgres = new PostgresStore(options);
-      return Promise.resolve(this.adapters.postgres);
+      return this.adapters.postgres;
     } else {
       if (this.adapters.memory) return this.adapters.memory; 
 
       this.adapters.memory = new InMemoryStore();
-      return Promise.resolve(this.adapters.memory);
+      return this.adapters.memory;
     }
   }
 }
