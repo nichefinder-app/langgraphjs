@@ -60,7 +60,6 @@ export const reload = async (): Promise<StorageConfig> => {
             retry_counter: {},
             }),
         );
-        await conn.initialize(".");
         storageConfig.PERSISTENCE = conn;
     } else {
         const pool = new pg.Pool({
@@ -68,7 +67,6 @@ export const reload = async (): Promise<StorageConfig> => {
             max: storageConfig.LANGGRAPH_POSTGRES_POOL_MAX_SIZE,
         });
         const conn = new PostgresPersistence(pool);
-        await conn.initialize();
         storageConfig.PERSISTENCE = conn;
         storageConfig.POSTGRES_POOL = pool;
     }

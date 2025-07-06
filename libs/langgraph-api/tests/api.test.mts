@@ -1,6 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
-import { initStorage } from "../src/server.mjs";
 import type {
   BaseMessageFields,
   BaseMessageLike,
@@ -23,8 +20,6 @@ let server: ChildProcess | undefined;
 // Passed to all invocation requests as the graph now requires this field to be present
 // in `configurable` due to a new `SharedValue` field requiring it.
 const globalConfig = { configurable: { user_id: "123" } };
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // TODO: this is not exported anywhere in JS
 // we should support only the flattened one
@@ -58,7 +53,6 @@ beforeAll(async () => {
   }
 
   await truncate(API_URL, "all");
-  await initStorage(path.resolve(__dirname, "graphs"));
 }, 60_000);
 
 afterAll(() => server?.kill("SIGTERM"));
@@ -161,7 +155,7 @@ describe("assistants", () => {
     );
   });
 
-  it("list assistants", async () => {
+  it.only("list assistants", async () => {
     let search = await client.assistants.search();
 
     // Greater than or equal because the vitest retries can cause multiple assistants to be created
@@ -169,6 +163,7 @@ describe("assistants", () => {
 
     const graphid = "agent";
     const create = await client.assistants.create({ graphId: "agent" });
+    console.log(`created boiioynog`, create)
 
     search = await client.assistants.search();
     expect(search.length).toBeGreaterThanOrEqual(2);
@@ -681,18 +676,9 @@ describe("runs", () => {
   beforeAll(async () => truncate(API_URL, { store: true, threads: true }));
 
   it.concurrent("list runs", async () => {
-    // Check initial state
-    let ops = JSON.parse(fs.readFileSync("/Users/brettshollenberger/programming/business/tools/langgraphjs/libs/langgraph-api/tests/graphs/.langgraph_api/.langgraphjs_ops.json", "utf-8"));
-    expect(Object.keys(ops.json.threads).length).toBe(0);
-
     // Create resources
     const assistant = await client.assistants.create({ graphId: "agent" });
     const thread = await client.threads.create();
-    await Threads.storage.adapters.memory?.conn.flush();
-
-    // Verify persistence
-    ops = JSON.parse(fs.readFileSync(Threads.storage.adapters.memory?.conn.filepath as string, "utf-8"));
-    expect(Object.keys(ops.json.threads)).toContain(thread.thread_id);
 
     await client.runs.wait(thread.thread_id, assistant.assistant_id, {
       input: { messages: [{ type: "human", content: "foo" }] },

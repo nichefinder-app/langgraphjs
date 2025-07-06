@@ -24,14 +24,6 @@ import { cors, ensureContentType } from "./http/middleware.mjs";
 import { bindLoopbackFetch } from "./loopback.mjs";
 import { checkLangGraphSemver } from "./semver/index.mjs";
 
-export const initStorage = async (cwd: string) => {
-  return Promise.all([
-    persistence.initialize(cwd),
-    checkpointer.initialize(cwd),
-    graphStore.initialize(cwd),
-  ]);
-};
-
 export const StartServerSchema = z.object({
   port: z.number(),
   nWorkers: z.number(),
@@ -85,7 +77,11 @@ export async function startServer(options: z.infer<typeof StartServerSchema>) {
   }
 
   logger.info(`Initializing storage...`);
-  const callbacks = await initStorage(options.cwd);
+  const callbacks = await Promise.all([
+    persistence.initialize(options.cwd),
+    checkpointer.initialize(options.cwd),
+    graphStore.initialize(options.cwd),
+  ]);
 
   const cleanup = async () => {
     logger.info(`Flushing to persistent storage, exiting...`);
