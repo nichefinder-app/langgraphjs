@@ -155,7 +155,7 @@ describe("assistants", () => {
     );
   });
 
-  it.only("list assistants", async () => {
+  it("list assistants", async () => {
     let search = await client.assistants.search();
 
     // Greater than or equal because the vitest retries can cause multiple assistants to be created
