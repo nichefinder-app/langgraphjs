@@ -30,7 +30,6 @@ export class Queue implements QueueInterface {
     if (storageConfig.REDIS_URI_CUSTOM) {
       if (this.adapters.redis) return this.adapters.redis;
 
-
        this.adapters.redis = new RedisQueue(this.options)
       return Promise.resolve(this.adapters.redis);
     } else {

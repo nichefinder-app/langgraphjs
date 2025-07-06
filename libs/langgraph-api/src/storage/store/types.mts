@@ -3,9 +3,8 @@ import {
     type Operation,
     type OperationResults
 } from "@langchain/langgraph";
-
-export interface Store {
-    initialize(cwd: string): Promise<Store>;
+export interface StoreInterface {
+    initialize(cwd: string): Promise<StoreInterface>;
     flush(): Promise<boolean>;
     clear(): Promise<void> | void;
     batch<Op extends Operation[]>(operations: Op): Promise<OperationResults<Op>>;

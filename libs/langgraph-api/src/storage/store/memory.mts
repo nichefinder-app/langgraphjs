@@ -15,16 +15,17 @@ const conn = new FileSystemPersistence<{
 }));
 
 export class InMemoryStore extends BaseMemoryStore implements Store {
-  async initialize(cwd: string) {
+  async initialize(cwd: string): Promise<Store> {
     await conn.initialize(cwd);
     await conn.with(({ data, vectors }) => {
       Object.assign(this, { data, vectors });
     });
-    return this;
+    return Promise.resolve(this);
   }
 
-  async flush() {
+  async flush(): Promise<boolean> {
     await conn.flush();
+    return true;
   }
 
   async clear() {
