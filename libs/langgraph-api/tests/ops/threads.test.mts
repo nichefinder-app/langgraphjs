@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { describe, it, expect, beforeEach, beforeAll } from "vitest";
 import type { AuthContext } from "../../src/auth/index.mjs";
 import { randomUUID } from 'crypto';
@@ -55,7 +56,7 @@ describe("Threads", async () => {
             });
 
             describe("put", () => {
-                it("basic", async () => {
+                it.only("basic", async () => {
                     const thread1Id = randomUUID();
                     
                     const thread = await Threads.put(thread1Id, {
@@ -71,6 +72,12 @@ describe("Threads", async () => {
                         metadata: { foo: "bar" },
                         if_exists: "raise",
                     }, undefined)).rejects.toThrow("Thread already exists");
+
+                    if (persistenceType == "memory") {
+                        const file = Threads.storage.adapters.memory.conn.filepath;
+                        const threads = JSON.parse(fs.readFileSync(file, "utf-8"));
+                        expect(threads[thread1Id]).toHaveProperty("metadata", { foo: "bar" });
+                    }
                 });
 
                 describe("authorization", () => {
