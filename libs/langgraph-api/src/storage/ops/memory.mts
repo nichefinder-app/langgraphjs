@@ -206,24 +206,23 @@ export class MemoryAdapter<ModelType extends Record<string, any>> implements Ops
   }
 
   async put(options: PUT_OPTIONS<ModelType>): Promise<ModelType> {
-    return this.conn.with((STORE) => {
+    return this.conn.with(async (STORE) => {
       if (!STORE[this.table]) {
         STORE[this.table] = {} as any;
       }
 
       const key = this.normalizeKey(options.key) ?? this.getModelKey(options.model);
       (STORE[this.table] as any)[key] = options.model;
+      await this.conn.flush();
       if (this.table === `threads`) {
         console.log(`should have inserted model`, options.model)
-        // console.log(STORE[this.table])
-        // console.log(this.conn)
       }
       return options.model;
     });
   }
 
   async patch(options: PATCH_OPTIONS<ModelType>): Promise<ModelType> {
-    return this.conn.with((STORE) => {
+    return this.conn.with(async (STORE) => {
       const key = this.normalizeKey(options.key) ?? this.getModelKey(options.model);
       const existing = (STORE[this.table] as any)[key];
       if (!existing) {
@@ -233,6 +232,7 @@ export class MemoryAdapter<ModelType extends Record<string, any>> implements Ops
         ...existing,
         ...options.model,
       };
+      await this.conn.flush();
       return (STORE[this.table] as any)[key];
     });
   }

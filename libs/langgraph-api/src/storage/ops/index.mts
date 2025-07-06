@@ -1,5 +1,5 @@
 import type { Store } from "../types/store.mjs";
-import { storageConfig, Connection } from "../config.mjs";
+import { storageConfig } from "../config.mjs";
 import { MemoryAdapter } from "./memory.mjs";
 import { PostgresAdapter } from "./postgres.mjs";
 import { FileSystemPersistence } from "../persist.mjs";
@@ -17,28 +17,27 @@ export class StorageOps<ModelType extends Record<string, any>> {
   private table: string;
   private primaryKey: string;
   private adapters: { memory: MemoryAdapter<ModelType> | null, postgres: PostgresAdapter<ModelType> | null } = { memory: null, postgres: null };
-  private conn: Connection;
 
   constructor(table: keyof Store, primaryKey: string) {
     this.table = table;
     this.primaryKey = primaryKey;
-    this.conn = storageConfig.PERSISTENCE;
+    const conn = storageConfig.PERSISTENCE;
 
     if (storageConfig.PERSISTENCE_TYPE === "memory") {
-      this.adapters.memory = new MemoryAdapter<ModelType>(this.conn as FileSystemPersistence<Store>, this.table as keyof Store, this.primaryKey);
+      this.adapters.memory = new MemoryAdapter<ModelType>(conn as FileSystemPersistence<Store>, this.table as keyof Store, this.primaryKey);
     } else {
-      this.adapters.postgres = new PostgresAdapter<ModelType>(this.conn as PostgresPersistence, this.table as keyof Store, this.primaryKey)
+      this.adapters.postgres = new PostgresAdapter<ModelType>(conn as PostgresPersistence, this.table as keyof Store, this.primaryKey)
     }
   }
 
   async all(): Promise<ModelType[]> {
     const adapter = await this.adapter();
-    return adapter.all();
+    return adapter!.all();
   }
 
   async get(options: GET_OPTIONS): Promise<ModelType | null> {
     const adapter = await this.adapter();
-    return adapter.get(options);
+    return adapter!.get(options);
   }
 
   async *search(options: SEARCH_OPTIONS = {}): AsyncGenerator<SearchResponse<ModelType>> {
@@ -48,27 +47,27 @@ export class StorageOps<ModelType extends Record<string, any>> {
 
   async where(options: SEARCH_OPTIONS = {}): Promise<ModelType[]> {
     const adapter = await this.adapter();
-    return adapter.where(options);
+    return adapter!.where(options);
   }
 
   async put(options: PUT_OPTIONS<ModelType>): Promise<ModelType | null> {
     const adapter = await this.adapter();
-    return adapter.put(options);
+    return adapter!.put(options);
   }
 
   async patch(options: PATCH_OPTIONS<ModelType>): Promise<ModelType> {
     const adapter = await this.adapter();
-    return adapter.patch(options);
+    return adapter!.patch(options);
   }
 
   async delete(options: DELETE_OPTIONS): Promise<boolean> {
     const adapter = await this.adapter();
-    return adapter.delete(options);
+    return adapter!.delete(options);
   }
 
   async truncate(): Promise<void> {
     const adapter = await this.adapter();
-    return adapter.truncate();
+    return adapter!.truncate();
   }
 
   private async adapter() {

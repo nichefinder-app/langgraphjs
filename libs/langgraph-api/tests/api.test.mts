@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import path from "node:path";
+import { initStorage } from "../src/server.mjs";
 import type {
   BaseMessageFields,
   BaseMessageLike,
@@ -12,6 +14,7 @@ import { findLast, gatherIterator, truncate } from "./utils.mjs";
 import { type ChildProcess, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import waitPort from "wait-port";
+import { Threads } from "../src/storage/ops.mjs";
 
 const API_URL = "http://localhost:2024";
 const client = new Client<any>({ apiUrl: API_URL });
@@ -55,6 +58,7 @@ beforeAll(async () => {
   }
 
   await truncate(API_URL, "all");
+  await initStorage(path.resolve(__dirname, "graphs"));
 }, 60_000);
 
 afterAll(() => server?.kill("SIGTERM"));
@@ -677,8 +681,19 @@ describe("runs", () => {
   beforeAll(async () => truncate(API_URL, { store: true, threads: true }));
 
   it.concurrent("list runs", async () => {
+    // Check initial state
+    let ops = JSON.parse(fs.readFileSync("/Users/brettshollenberger/programming/business/tools/langgraphjs/libs/langgraph-api/tests/graphs/.langgraph_api/.langgraphjs_ops.json", "utf-8"));
+    expect(Object.keys(ops.json.threads).length).toBe(0);
+
+    // Create resources
     const assistant = await client.assistants.create({ graphId: "agent" });
     const thread = await client.threads.create();
+    await Threads.storage.adapters.memory?.conn.flush();
+
+    // Verify persistence
+    ops = JSON.parse(fs.readFileSync(Threads.storage.adapters.memory?.conn.filepath as string, "utf-8"));
+    expect(Object.keys(ops.json.threads)).toContain(thread.thread_id);
+
     await client.runs.wait(thread.thread_id, assistant.assistant_id, {
       input: { messages: [{ type: "human", content: "foo" }] },
       config: globalConfig,
@@ -707,13 +722,17 @@ describe("runs", () => {
   });
 
   it.only.concurrent("stream values", async () => {
+    // Initialize persistence with correct working directory
     let ops = JSON.parse(fs.readFileSync("/Users/brettshollenberger/programming/business/tools/langgraphjs/libs/langgraph-api/tests/graphs/.langgraph_api/.langgraphjs_ops.json", "utf-8"));
     console.log(`threads were trunc? ${Object.keys(ops.json.threads).length === 0}`)
+    console.log(Threads.storage.adapters.memory.conn.filepath)
 
     const assistant = await client.assistants.create({ graphId: "agent" });
     const thread = await client.threads.create();
-    await sleep(3000)
-    ops = JSON.parse(fs.readFileSync("/Users/brettshollenberger/programming/business/tools/langgraphjs/libs/langgraph-api/tests/graphs/.langgraph_api/.langgraphjs_ops.json", "utf-8"));
+    console.log(`here is thread`, thread)
+
+    console.log(`should be saved to filepath`, Threads.storage.adapters.memory?.conn.filepath)
+    ops = JSON.parse(fs.readFileSync(Threads.storage.adapters.memory?.conn.filepath as string, "utf-8"));
     console.log(`thread created?`, ops.json.threads)
     const input = {
       messages: [{ type: "human", content: "foo", id: "initial-message" }],
