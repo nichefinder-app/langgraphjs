@@ -1,5 +1,5 @@
 import type { Store } from "../types/store.mjs";
-import { storageConfig } from "../config.mjs";
+import { storageConfig, Connection } from "../config.mjs";
 import { MemoryAdapter } from "./memory.mjs";
 import { PostgresAdapter } from "./postgres.mjs";
 import { FileSystemPersistence } from "../persist.mjs";
@@ -17,10 +17,18 @@ export class StorageOps<ModelType extends Record<string, any>> {
   private table: string;
   private primaryKey: string;
   private adapters: { memory: MemoryAdapter<ModelType> | null, postgres: PostgresAdapter<ModelType> | null } = { memory: null, postgres: null };
+  private conn: Connection;
 
   constructor(table: keyof Store, primaryKey: string) {
     this.table = table;
     this.primaryKey = primaryKey;
+    this.conn = storageConfig.PERSISTENCE;
+
+    if (storageConfig.PERSISTENCE_TYPE === "memory") {
+      this.adapters.memory = new MemoryAdapter<ModelType>(this.conn as FileSystemPersistence<Store>, this.table as keyof Store, this.primaryKey);
+    } else {
+      this.adapters.postgres = new PostgresAdapter<ModelType>(this.conn as PostgresPersistence, this.table as keyof Store, this.primaryKey)
+    }
   }
 
   async all(): Promise<ModelType[]> {
@@ -64,17 +72,9 @@ export class StorageOps<ModelType extends Record<string, any>> {
   }
 
   private async adapter() {
-    const conn = storageConfig.PERSISTENCE;
-
     if (storageConfig.PERSISTENCE_TYPE === "memory") {
-      if (this.adapters.memory) return this.adapters.memory;
-
-      this.adapters.memory = new MemoryAdapter<ModelType>(conn as FileSystemPersistence<Store>, this.table as keyof Store, this.primaryKey);
       return this.adapters.memory;
     } else {
-      if (this.adapters.postgres) return this.adapters.postgres; 
-
-      this.adapters.postgres = new PostgresAdapter<ModelType>(conn as PostgresPersistence, this.table as keyof Store, this.primaryKey)
       return this.adapters.postgres;
     }
   }

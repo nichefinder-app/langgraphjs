@@ -5,7 +5,7 @@ import { randomUUID } from 'crypto';
 import path from "path";
 import { fileURLToPath } from "url";
 import { truncate, Threads, Runs, Assistants } from "../../src/storage/ops.mjs"
-import { PersistenceType, PersistenceTypes, reload as reloadConfig } from "../../src/storage/config.mjs";
+import { PersistenceType, PersistenceTypes, persistence } from "../../src/storage/config.mjs";
 import { stubPersistence, authorizedUserContext, differentUserContext } from "../utils.mjs"
 import { checkpointer } from "../../src/storage/checkpoint.mjs";
 
@@ -17,6 +17,8 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 describe("Threads", async () => {
     beforeAll(async () => {
+        // Initialize persistence with correct working directory
+        await persistence.initialize(path.resolve(__dirname, "../graphs"));
         const { registerAuth } = await import("../../src/auth/index.mjs");
         const cwd = path.resolve(__dirname, "..");
         await registerAuth({ 
@@ -56,7 +58,7 @@ describe("Threads", async () => {
             });
 
             describe("put", () => {
-                it.only("basic", async () => {
+                it("basic", async () => {
                     const thread1Id = randomUUID();
                     
                     const thread = await Threads.put(thread1Id, {
@@ -74,9 +76,12 @@ describe("Threads", async () => {
                     }, undefined)).rejects.toThrow("Thread already exists");
 
                     if (persistenceType == "memory") {
+                        await Threads.storage.adapters.memory.conn.flush();
                         const file = Threads.storage.adapters.memory.conn.filepath;
-                        const threads = JSON.parse(fs.readFileSync(file, "utf-8"));
-                        expect(threads[thread1Id]).toHaveProperty("metadata", { foo: "bar" });
+                        if (!file) throw new Error("File path not set");
+                        const data = JSON.parse(await fs.promises.readFile(file, "utf-8")).json;
+                        expect(data).toHaveProperty("threads");
+                        expect(data.threads[thread1Id]).toHaveProperty("metadata", { foo: "bar" });
                     }
                 });
 
