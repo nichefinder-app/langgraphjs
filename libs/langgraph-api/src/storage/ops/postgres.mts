@@ -33,6 +33,9 @@ const SCHEMA = {
   assistant_versions: "assistant_versions",
   retry_counter: "retry_counter",
 }
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export class PostgresAdapter<ModelType extends Record<string, any>> implements OpsAdapter<ModelType> {
   private persistence: PostgresPersistence;
   private conn: pg.Pool;
@@ -59,6 +62,11 @@ export class PostgresAdapter<ModelType extends Record<string, any>> implements O
       return null;
     }
     
+    // If we have a key and it's supposed to be a UUID, validate it
+    if (options.key && this.primaryKey === 'id' && !UUID_REGEX.test(options.key)) {
+      return null; // Return null for invalid UUIDs instead of causing a database error
+    }
+    
     const opts = await normalizeOptions(options) as GET_OPTIONS
 
     return this.with(async (client: pg.PoolClient) => {
@@ -70,6 +78,12 @@ export class PostgresAdapter<ModelType extends Record<string, any>> implements O
       `;
       const result = await client.query<ModelType>(queryText, whereValues);
       return result.rows[0] ?? null;
+    }).catch((error) => {
+      // If it's a UUID type error, return null instead of throwing
+      if (error.code === '22P02' && error.message.includes('invalid input syntax for type uuid')) {
+        return null;
+      }
+      throw error;
     });
   }
 
@@ -328,7 +342,15 @@ export class PostgresAdapter<ModelType extends Record<string, any>> implements O
       // Helper for IN/NOT IN clauses
       const buildInClause = (arr: any[], notIn = false) => {
         if (!Array.isArray(arr) || arr.length === 0) return [notIn ? '1=1' : '1=0'];
-        const placeholders = arr.map(val => paramManager.add(val)).join(', ');
+        
+        // If this is an id column, filter out invalid UUIDs
+        let validValues = arr;
+        if ((column === '"id"' || column === 'id') && arr.every(v => typeof v === 'string')) {
+          validValues = arr.filter(val => UUID_REGEX.test(val));
+          if (validValues.length === 0) return [notIn ? '1=1' : '1=0'];
+        }
+        
+        const placeholders = validValues.map(val => paramManager.add(val)).join(', ');
         return [`${column} ${notIn ? 'NOT IN' : 'IN'} (${placeholders})`];
       };
 
@@ -337,6 +359,11 @@ export class PostgresAdapter<ModelType extends Record<string, any>> implements O
       }
 
       if (typeof condition !== 'object' || condition === null) {
+        // If this is an id column and the value should be a UUID, validate it
+        if ((column === '"id"' || column === 'id') && typeof condition === 'string' && !UUID_REGEX.test(condition)) {
+          // Return an always-false condition for invalid UUIDs
+          return ['1=0'];
+        }
         return [`${column} = ${paramManager.add(condition)}`];
       }
 
