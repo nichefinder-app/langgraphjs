@@ -50,7 +50,6 @@ export const reload = async (): Promise<StorageConfig> => {
     storageConfig.QUEUE_TYPE = process.env.REDIS_URI_CUSTOM ? "redis" : "memory";
     
     if (storageConfig.PERSISTENCE_TYPE === "memory") {
-        console.log(`creating and using FileSystemPersistence for langgraph_ops`)
         const conn = new FileSystemPersistence<Store>(
             ".langgraphjs_ops.json",
             () => ({

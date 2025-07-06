@@ -706,7 +706,6 @@ export class Threads {
       values: undefined,
     }
 
-    console.log(`saving thread`)
     await Threads.storage.put({ key: thread_id, model: result });
 
     return result;
