@@ -43,12 +43,11 @@ export class InMemorySaver extends MemorySaver implements APISaver {
       this.storage = storage;
       this.writes = writes;
     });
-
     return this;
   }
 
   flush() {
-    return Promise.resolve(true);
+    return conn.flush();
   }
 
   clear() {
