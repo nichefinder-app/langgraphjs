@@ -63,15 +63,15 @@ export const truncate = async (flags: {
   assistants?: boolean;
   checkpointer?: boolean;
   store?: boolean;
-  full: boolean;
+  full?: boolean;
 }) => {
-  const full = flags.full || false;
+  const full = flags.full ?? false;
 
-  if (flags.runs) await Runs.truncate();
-  if (flags.threads) await Threads.truncate();
-  if (flags.assistants) await Assistants.truncate(full);
-  if (flags.checkpointer) await checkpointer.clear();
-  if (flags.store) await store.clear();
+  if (flags.runs || full) await Runs.truncate(full);
+  if (flags.threads || full) await Threads.truncate(full);
+  if (flags.assistants || full) await Assistants.truncate(full);
+  if (flags.checkpointer || full) await checkpointer.clear();
+  if (flags.store || full) await store.clear();
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> => {
@@ -835,7 +835,7 @@ export class Threads {
     return [thread.thread_id];
   }
 
-  static async truncate() {
+  static async truncate(full: boolean = false) {
     return Threads.storage.truncate();
   }
 
@@ -1400,7 +1400,7 @@ export class Runs {
     return run.run_id;
   }
 
-  static async truncate() {
+  static async truncate(full: boolean = false) {
     return Runs.storage.truncate();
   }
 

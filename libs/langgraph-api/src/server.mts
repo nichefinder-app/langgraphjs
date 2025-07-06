@@ -106,7 +106,7 @@ export async function startServer(options: z.infer<typeof StartServerSchema>) {
         assistants: z.boolean().optional(),
         checkpointer: z.boolean().optional(),
         store: z.boolean().optional(),
-        full: z.boolean().optional(),
+        full: z.boolean().default(false),
       })
     ),
     async (c) => {

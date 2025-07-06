@@ -25,9 +25,11 @@ export async function truncate(
         assistants?: boolean;
         store?: boolean;
         checkpoint?: boolean;
+        full?: boolean;
       }
     | "all"
 ) {
+  console.log(options)
   const flags =
     options === "all"
       ? {
@@ -36,6 +38,7 @@ export async function truncate(
           assistants: true,
           store: true,
           checkpoint: true,
+          full: true
         }
       : options;
 
