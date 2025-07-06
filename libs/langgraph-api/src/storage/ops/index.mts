@@ -12,7 +12,7 @@ import {
   PATCH_OPTIONS,
   DELETE_OPTIONS,
   SearchResponse,
- } from "./ops_adapter.mjs"
+ } from "./types.mjs"
 export class StorageOps<ModelType extends Record<string, any>> {
   private table: string;
   private primaryKey: string;
@@ -70,10 +70,13 @@ export class StorageOps<ModelType extends Record<string, any>> {
       if (this.adapters.memory) return this.adapters.memory;
 
       this.adapters.memory = new MemoryAdapter<ModelType>(conn as FileSystemPersistence<Store>, this.table as keyof Store, this.primaryKey);
+      console.log(`using memory adapter for storage ops`)
+      console.log(storageConfig.PERSISTENCE.filepath)
       return this.adapters.memory;
     } else {
       if (this.adapters.postgres) return this.adapters.postgres; 
 
+      console.log(`using postgres adapter for storage ops`)
       this.adapters.postgres = new PostgresAdapter<ModelType>(conn as PostgresPersistence, this.table as keyof Store, this.primaryKey)
       return this.adapters.postgres;
     }

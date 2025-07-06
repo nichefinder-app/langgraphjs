@@ -213,6 +213,11 @@ export class MemoryAdapter<ModelType extends Record<string, any>> implements Ops
 
       const key = this.normalizeKey(options.key) ?? this.getModelKey(options.model);
       (STORE[this.table] as any)[key] = options.model;
+      if (this.table === `threads`) {
+        console.log(`should have inserted model`, options.model)
+        // console.log(STORE[this.table])
+        // console.log(this.conn)
+      }
       return options.model;
     });
   }
@@ -332,8 +337,9 @@ export class MemoryAdapter<ModelType extends Record<string, any>> implements Ops
   }
 
   async truncate() {
-    return this.conn.with((STORE) => {
+    this.conn.with((STORE) => {
       STORE[this.table] = {};
     });
+    await this.conn.flush();
   }
 }

@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import type {
   BaseMessageFields,
   BaseMessageLike,
@@ -19,6 +20,8 @@ let server: ChildProcess | undefined;
 // Passed to all invocation requests as the graph now requires this field to be present
 // in `configurable` due to a new `SharedValue` field requiring it.
 const globalConfig = { configurable: { user_id: "123" } };
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // TODO: this is not exported anywhere in JS
 // we should support only the flattened one
@@ -703,9 +706,15 @@ describe("runs", () => {
     expect(runs.length).toBe(1);
   });
 
-  it.concurrent("stream values", async () => {
+  it.only.concurrent("stream values", async () => {
+    let ops = JSON.parse(fs.readFileSync("/Users/brettshollenberger/programming/business/tools/langgraphjs/libs/langgraph-api/tests/graphs/.langgraph_api/.langgraphjs_ops.json", "utf-8"));
+    console.log(`threads were trunc? ${Object.keys(ops.json.threads).length === 0}`)
+
     const assistant = await client.assistants.create({ graphId: "agent" });
     const thread = await client.threads.create();
+    await sleep(3000)
+    ops = JSON.parse(fs.readFileSync("/Users/brettshollenberger/programming/business/tools/langgraphjs/libs/langgraph-api/tests/graphs/.langgraph_api/.langgraphjs_ops.json", "utf-8"));
+    console.log(`thread created?`, ops.json.threads)
     const input = {
       messages: [{ type: "human", content: "foo", id: "initial-message" }],
     };
@@ -745,6 +754,8 @@ describe("runs", () => {
 
     if (IS_MEMORY) {
       const runCheckpoints = await client.threads.getHistory(thread.thread_id);
+      const runCheckpointsOrig = await client.threads.getHistory(thread.thread_id);
+      console.log("runCheckpointsOrig", runCheckpointsOrig)
       expect(runCheckpoints.length).toBeGreaterThan(1);
     } else {
       const sql = postgres(

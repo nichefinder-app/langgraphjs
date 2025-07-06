@@ -706,6 +706,7 @@ export class Threads {
       values: undefined,
     }
 
+    console.log(`saving thread`)
     await Threads.storage.put({ key: thread_id, model: result });
 
     return result;
@@ -836,6 +837,7 @@ export class Threads {
   }
 
   static async truncate(full: boolean = false) {
+    console.log(`received thread truncate`)
     return Threads.storage.truncate();
   }
 

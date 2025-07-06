@@ -55,6 +55,7 @@ export class FileSystemPersistence<Schema> {
   protected async persist() {
     if (this.data == null || this.filepath == null) return;
     clearTimeout(this.flushTimeout);
+    console.log(`calling persist`)
     await fs.writeFile(this.filepath, serialize(this.data), "utf-8");
   }
 
