@@ -16,78 +16,15 @@ const TABLES = [
 
 const EXCLUDED_KEYS = ["checkpoint_ns", "checkpoint_id", "run_id", "thread_id"];
 
-// API-specific migrations that extend the core LangGraph schema
-// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
-// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
-// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
-// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
-// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
-// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
-// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
-// API_MIGRATIONS removed - now merged into core codebase
-
 export class PostgresSaver extends CorePostgresSaver implements APISaver {
     async initialize(cwd: string): Promise<PostgresSaver> {
         await this.setup();
-        // await this.runApiMigrations();
         return this;
     }
 
     async flush() {
         return Promise.resolve(true)
     }
-
-    // private async runApiMigrations(): Promise<void> {
-    //     // @ts-ignore - We have access to pool.connect
-    //     const client = await this.pool.connect();
-        
-    //     try {
-    //         // @ts-ignore - We have access to options.schema
-    //         const schema = this.options.schema;
-            
-    //         // Create API migrations table if it doesn't exist
-    //         await client.query(`
-    //             CREATE TABLE IF NOT EXISTS ${schema}.api_migrations (
-    //                 version INTEGER PRIMARY KEY,
-    //                 applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    //             )
-    //         `);
-            
-    //         // Check current API migration version
-    //         let currentVersion = -1;
-    //         try {
-    //             const result = await client.query(`
-    //                 SELECT version FROM ${schema}.api_migrations 
-    //                 ORDER BY version DESC LIMIT 1
-    //             `);
-    //             if (result.rows.length > 0) {
-    //                 currentVersion = result.rows[0].version;
-    //             }
-    //         } catch (error: any) {
-    //             // Table might not exist yet, continue with version -1
-    //             console.log("API migrations table not found, starting fresh");
-    //         }
-            
-    //         // Apply pending migrations
-    //         for (let version = currentVersion + 1; version < API_MIGRATIONS.length; version++) {
-    //             const migration = API_MIGRATIONS[version].replace('{schema}', schema);
-    //             console.log(`Applying API migration ${version}: ${migration.substring(0, 80)}...`);
-                
-    //             await client.query(migration);
-    //             await client.query(`
-    //                 INSERT INTO ${schema}.api_migrations (version) VALUES ($1)
-    //             `, [version]);
-                
-    //             console.log(`✅ API migration ${version} applied successfully`);
-    //         }
-            
-    //     } catch (error) {
-    //         console.error("Error running API migrations:", error);
-    //         throw error;
-    //     } finally {
-    //         client.release();
-    //     }
-    // }
 
     async clear(): Promise<void> {
         // @ts-ignore - We have access to pool.connect
