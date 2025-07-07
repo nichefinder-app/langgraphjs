@@ -126,7 +126,7 @@ export class PostgresSaver extends CorePostgresSaver implements APISaver {
                     parent_checkpoint_id,
                     checkpoint,
                     metadata,
-                    checkpoint_ns
+                    REPLACE(checkpoint_ns, $1, $2) as checkpoint_ns
                 FROM ${schema}.checkpoints 
                 WHERE thread_id = $1
             `, [threadId, newThreadId]);
@@ -143,7 +143,7 @@ export class PostgresSaver extends CorePostgresSaver implements APISaver {
                     version,
                     type,
                     blob,
-                    checkpoint_ns
+                    REPLACE(checkpoint_ns, $1, $2) as checkpoint_ns
                 FROM ${schema}.checkpoint_blobs 
                 WHERE thread_id = $1
             `, [threadId, newThreadId]);
@@ -161,7 +161,7 @@ export class PostgresSaver extends CorePostgresSaver implements APISaver {
                     channel,
                     type,
                     blob,
-                    checkpoint_ns
+                    REPLACE(checkpoint_ns, $1, $2) as checkpoint_ns
                 FROM ${schema}.checkpoint_writes 
                 WHERE thread_id = $1
             `, [threadId, newThreadId]);
