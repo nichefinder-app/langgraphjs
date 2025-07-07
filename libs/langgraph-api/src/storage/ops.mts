@@ -1,6 +1,5 @@
 import type {
   CheckpointMetadata as LangGraphCheckpointMetadata,
-  LangGraphRunnableConfig,
   StateSnapshot as LangGraphStateSnapshot,
 } from "@langchain/langgraph";
 
@@ -18,7 +17,7 @@ import { StorageOps } from "./ops/index.mjs";
 import { Thread } from "./types/thread.mjs";
 import type { SEARCH_OPTIONS } from "./ops/types.mjs";
 import type { Metadata, OnConflictBehavior } from "./types/index.mjs";
-import type { RunStatus, StreamMode, MultitaskStrategy, RunKwargs, Run } from "./types/run.mjs";
+import type { RunStatus, MultitaskStrategy, RunKwargs, Run } from "./types/run.mjs";
 import type { RunnableConfig } from "./types/runnableConfig.mjs";
 import { AbortError } from "./queue/index.mjs";
 import { StreamManager } from "./stream/index.mjs";
@@ -27,7 +26,7 @@ import { ABORT_ACTION } from "./stream/types.mjs";
 export type ThreadStatus = "idle" | "busy" | "interrupted" | "error";
 export type IfNotExists = "create" | "reject";
 export type { RunnableConfig };
-export type { Run, RunKwargs, RunStatus, MultitaskStrategy, StreamMode } from "./types/run.mjs";
+export type { Run, RunKwargs, RunStatus, MultitaskStrategy } from "./types/run.mjs";
 export type { Metadata } from "./types/index.mjs";
 
 interface Assistant {

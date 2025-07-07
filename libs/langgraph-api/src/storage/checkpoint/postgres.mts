@@ -4,10 +4,8 @@ import type { RunnableConfig } from "@langchain/core/runnables";
 import {
   type Checkpoint,
   type CheckpointMetadata,
-  type CheckpointTuple,
-  type CheckpointListOptions,
-  type ChannelVersions,
 } from "@langchain/langgraph";
+import type { ChannelVersions } from "@langchain/langgraph-checkpoint";
 
 const TABLES = [
     "checkpoints",
@@ -26,13 +24,7 @@ const EXCLUDED_KEYS = ["checkpoint_ns", "checkpoint_id", "run_id", "thread_id"];
 // MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
 // MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
 // MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
-// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
-const API_MIGRATIONS = [
-    // Migration 0: Add run_id column to checkpoints
-    // `ALTER TABLE {schema}.checkpoints ADD COLUMN IF NOT EXISTS run_id UUID`,
-    // Migration 1: Add checkpoint_id column to checkpoint_blobs  
-    // `ALTER TABLE {schema}.checkpoint_blobs ADD COLUMN IF NOT EXISTS checkpoint_id UUID`
-];
+// API_MIGRATIONS removed - now merged into core codebase
 
 export class PostgresSaver extends CorePostgresSaver implements APISaver {
     async initialize(cwd: string): Promise<PostgresSaver> {

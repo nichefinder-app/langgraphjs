@@ -9,7 +9,6 @@ import Cursor from "pg-cursor";
 import { 
   OpsAdapter, 
   PrimaryKey,
-  OPTIONS,
   SEARCH_OPTIONS,
   GET_OPTIONS,
   PUT_OPTIONS as CORE_PUT_OPTIONS,
@@ -37,7 +36,6 @@ const SCHEMA = {
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class PostgresAdapter<ModelType extends Record<string, any>> implements OpsAdapter<ModelType> {
-  private persistence: PostgresPersistence;
   private conn: pg.Pool;
   private table: string;
   private primaryKey: string;
@@ -45,7 +43,6 @@ export class PostgresAdapter<ModelType extends Record<string, any>> implements O
   private columnCache: Set<string> | undefined = undefined;
 
   constructor(conn: PostgresPersistence, table: keyof typeof SCHEMA, primaryKey: string, schema?: string) {
-    this.persistence = conn;
     this.conn = conn.pool;
 
     if (!Object.keys(SCHEMA).includes(table)) {
@@ -63,7 +60,7 @@ export class PostgresAdapter<ModelType extends Record<string, any>> implements O
     }
     
     // If we have a key and it's supposed to be a UUID, validate it
-    if (options.key && this.primaryKey === 'id' && !UUID_REGEX.test(options.key)) {
+    if (options.key && this.primaryKey === 'id' && typeof options.key === 'string' && !UUID_REGEX.test(options.key)) {
       return null; // Return null for invalid UUIDs instead of causing a database error
     }
     

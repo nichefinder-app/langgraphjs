@@ -8,14 +8,12 @@ import {
 export class MemoryQueue implements QueueInterface {
   private log: Message[] = [];
   private listeners: ((idx: number) => void)[] = [];
-  private queueId: string;
 
   private nextId = 0;
   private resumable = false;
 
   constructor(options: { resumable: boolean, queueId: string; }) {
     this.resumable = options.resumable;
-    this.queueId = options.queueId;
   }
 
   async cleanup(): Promise<boolean> {

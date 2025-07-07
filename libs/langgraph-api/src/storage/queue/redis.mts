@@ -1,6 +1,5 @@
 import { Redis } from "ioredis";
 import { storageConfig } from "../config.mjs"
-import { v4 as uuid4 } from "uuid";
 import { serialize, deserialize } from "../persist/memory.mjs"
 import { 
     QueueInterface,

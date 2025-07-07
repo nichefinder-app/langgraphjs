@@ -2339,23 +2339,33 @@ describe("multitasking", () => {
   it.only("multitasking enqueue", { timeout: 8_000, retry: 3 }, async () => {
     const assistant = await client.assistants.create({ graphId: "agent" });
     const thread = await client.threads.create();
+    console.log(thread)
+
+    console.log("\n=== Starting multitasking enqueue test ===");
+    console.log("Thread ID:", thread.thread_id);
+    console.log("Assistant ID:", assistant.assistant_id);
 
     // Start first run
     const input1 = {
       messages: [{ role: "human", content: "foo", id: "initial-message-1" }],
       sleep: 2,
     };
+    console.log("\n--- Starting Run 1 ---");
+    console.log("Input:", JSON.stringify(input1));
     const run1 = await client.runs.create(
       thread.thread_id,
       assistant.assistant_id,
       { input: input1, config: globalConfig }
     );
+    console.log("Run 1 ID:", run1.run_id);
 
     // Start second run that should be enqueued
     const input2 = {
       messages: [{ role: "human", content: "bar", id: "initial-message-2" }],
       sleep: 0,
     };
+    console.log("\n--- Starting Run 2 (enqueued) ---");
+    console.log("Input:", JSON.stringify(input2));
     const run2 = await client.runs.create(
       thread.thread_id,
       assistant.assistant_id,
@@ -2365,14 +2375,37 @@ describe("multitasking", () => {
         config: globalConfig,
       }
     );
+    console.log("Run 2 ID:", run2.run_id);
 
     const run1Status = await pollRun(thread.thread_id, run1.run_id);
+    console.log("\nRun 1 Status:", run1Status);
     expect(run1Status).toBe("success");
 
     const run2Status = await pollRun(thread.thread_id, run2.run_id);
+    console.log("Run 2 Status:", run2Status);
     expect(run2Status).toBe("success");
 
     const state = await client.threads.getState<AgentState>(thread.thread_id);
+
+    console.log("\n=== Final State Messages ===");
+    console.log("Total messages:", state.values.messages.length);
+    state.values.messages.forEach((msg, idx) => {
+      console.log(`[${idx}] ${(msg as any)._getType ? (msg as any)._getType() : (msg as any).type}: ${msg.content} (id: ${(msg as any).id})`);
+    });
+
+    // Expected messages:
+    // Run 1: [0] human: foo, [1] ai: begin, [2] tool: tool_call__begin, [3] ai: end
+    // Run 2: [4] human: bar, [5] ai: begin, [6] tool: tool_call__begin, [7] ai: end
+    console.log("\n=== Expected vs Actual ===");
+    console.log("Expected: 8 messages");
+    console.log("Actual:", state.values.messages.length, "messages");
+    
+    if (state.values.messages.length !== 8) {
+      console.log("\n⚠️  MISSING MESSAGES!");
+      console.log("Expected pattern:");
+      console.log("  Run 1: human(foo) → ai(begin) → tool(tool_call__begin) → ai(end)");
+      console.log("  Run 2: human(bar) → ai(begin) → tool(tool_call__begin) → ai(end)");
+    }
 
     expect(state.values.messages.length).toBe(8);
     expect(state.values.messages.at(0)?.content).toBe("foo");

@@ -3,9 +3,9 @@ import { APISaver } from "./types.mjs";
 import {
   type Checkpoint,
   type CheckpointMetadata,
-  type ChannelVersions,
   MemorySaver,
 } from "@langchain/langgraph";
+import type { ChannelVersions } from "@langchain/langgraph-checkpoint";
 import { FileSystemPersistence } from "../persist.mjs";
 
 const EXCLUDED_KEYS = ["checkpoint_ns", "checkpoint_id", "run_id", "thread_id"];
