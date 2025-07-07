@@ -1147,14 +1147,36 @@ export class Runs {
       }
 
       if (await StreamManager.isLocked(runId)) continue;
+
+      // First, get all runs to check for running status
+      const isThreadAlreadyRunning = await Runs.storage.where({
+        where: {
+          thread_id: run.thread_id,
+          status: "running",
+        }
+      });
+
+      if (isThreadAlreadyRunning.length > 0) {
+        continue; // Do not yield this run if another run is already running on this thread
+      }
+
       try {
         const signal = await StreamManager.lock(runId);
         
         // If lock failed (returns null), skip this run
         if (signal === null) continue;
 
-        const now = new Date();
-        const counter = await RetryCounters.storage.get({ key: runId }) || { run_id: runId, counter: 0, created_at: now, updated_at: now } as RetryCounter
+        // Update run status to "running" before yielding
+        run.status = "running";
+        run.updated_at = new Date();
+        await Runs.storage.patch({ key: runId, model: run });
+
+        const counter = await RetryCounters.storage.get({ key: runId }) || { 
+          run_id: runId, 
+          counter: 0, 
+          created_at: now, 
+          updated_at: now 
+        } as RetryCounter;
         counter.counter += 1;
 
         await RetryCounters.storage.put({ key: runId, model: counter });
