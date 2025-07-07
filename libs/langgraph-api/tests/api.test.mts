@@ -554,6 +554,7 @@ describe("threads copy", () => {
       config: globalConfig,
     });
     const originalThreadState = await client.threads.getState(thread.thread_id);
+    console.log(`original thread state... which should be fully resolved is....`, originalThreadState.values.messages.map((m) => m.content))
 
     const copiedThread = await client.threads.copy(thread.thread_id);
     const newInput = { messages: [{ type: "human", content: "bar" }] };
@@ -570,6 +571,7 @@ describe("threads copy", () => {
     const copiedThreadStateMessages = copiedThreadState.values.messages.map(
       (m) => m.content
     );
+    console.log(`copied thread messages is: `, copiedThreadStateMessages)
     expect(copiedThreadStateMessages).toEqual([
       // original messages
       "foo",
@@ -590,7 +592,7 @@ describe("threads copy", () => {
     expect(currentOriginalThreadState).toEqual(originalThreadState);
   });
 
-  it.concurrent("get thread history", async () => {
+  it.only.concurrent("get thread history", async () => {
     const assistant = await client.assistants.create({ graphId: "agent" });
     const thread = await client.threads.create();
     const input = { messages: [{ type: "human", content: "foo" }] };
@@ -611,6 +613,7 @@ describe("threads copy", () => {
       console.dir(history, { depth: null });
     }
     expect(history.length).toBe(5);
+    console.log(history)
     expect(history[0].values.messages.length).toBe(4);
     expect(history[0].next.length).toBe(0);
     expect(history.at(-1)?.next).toEqual(["__start__"]);
@@ -1164,7 +1167,7 @@ describe("runs", () => {
     expect(thread.status).toBe("interrupted");
   });
 
-  it.only.concurrent("non-existent graph id", async () => {
+  it.concurrent("non-existent graph id", async () => {
     const thread = await client.threads.create();
     const input = {
       messages: [{ type: "human", content: "foo", id: "initial-message" }],

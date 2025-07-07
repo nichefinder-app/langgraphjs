@@ -3,6 +3,7 @@ import { APISaver } from "./types.mjs";
 import {
   type Checkpoint,
   type CheckpointMetadata,
+  type ChannelVersions,
   MemorySaver,
 } from "@langchain/langgraph";
 import { FileSystemPersistence } from "../persist.mjs";
@@ -81,7 +82,8 @@ export class InMemorySaver extends MemorySaver implements APISaver {
   async put(
     config: RunnableConfig,
     checkpoint: Checkpoint,
-    metadata: CheckpointMetadata
+    metadata: CheckpointMetadata,
+    _newVersions?: ChannelVersions
   ): Promise<RunnableConfig> {
     return await conn.with(() =>
       super.put(config, checkpoint, {

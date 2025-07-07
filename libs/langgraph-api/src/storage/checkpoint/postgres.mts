@@ -4,6 +4,9 @@ import type { RunnableConfig } from "@langchain/core/runnables";
 import {
   type Checkpoint,
   type CheckpointMetadata,
+  type CheckpointTuple,
+  type CheckpointListOptions,
+  type ChannelVersions,
 } from "@langchain/langgraph";
 
 const TABLES = [
@@ -16,17 +19,25 @@ const TABLES = [
 const EXCLUDED_KEYS = ["checkpoint_ns", "checkpoint_id", "run_id", "thread_id"];
 
 // API-specific migrations that extend the core LangGraph schema
+// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
+// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
+// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
+// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
+// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
+// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
+// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
+// MOVE ALL OF THIS NOW THAT THIS IS MERGED INTO CORE CODEBASE
 const API_MIGRATIONS = [
     // Migration 0: Add run_id column to checkpoints
-    `ALTER TABLE {schema}.checkpoints ADD COLUMN IF NOT EXISTS run_id UUID`,
+    // `ALTER TABLE {schema}.checkpoints ADD COLUMN IF NOT EXISTS run_id UUID`,
     // Migration 1: Add checkpoint_id column to checkpoint_blobs  
-    `ALTER TABLE {schema}.checkpoint_blobs ADD COLUMN IF NOT EXISTS checkpoint_id UUID`
+    // `ALTER TABLE {schema}.checkpoint_blobs ADD COLUMN IF NOT EXISTS checkpoint_id UUID`
 ];
 
 export class PostgresSaver extends CorePostgresSaver implements APISaver {
     async initialize(cwd: string): Promise<PostgresSaver> {
         await this.setup();
-        await this.runApiMigrations();
+        // await this.runApiMigrations();
         return this;
     }
 
@@ -34,57 +45,57 @@ export class PostgresSaver extends CorePostgresSaver implements APISaver {
         return Promise.resolve(true)
     }
 
-    private async runApiMigrations(): Promise<void> {
-        // @ts-ignore - We have access to pool.connect
-        const client = await this.pool.connect();
+    // private async runApiMigrations(): Promise<void> {
+    //     // @ts-ignore - We have access to pool.connect
+    //     const client = await this.pool.connect();
         
-        try {
-            // @ts-ignore - We have access to options.schema
-            const schema = this.options.schema;
+    //     try {
+    //         // @ts-ignore - We have access to options.schema
+    //         const schema = this.options.schema;
             
-            // Create API migrations table if it doesn't exist
-            await client.query(`
-                CREATE TABLE IF NOT EXISTS ${schema}.api_migrations (
-                    version INTEGER PRIMARY KEY,
-                    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            `);
+    //         // Create API migrations table if it doesn't exist
+    //         await client.query(`
+    //             CREATE TABLE IF NOT EXISTS ${schema}.api_migrations (
+    //                 version INTEGER PRIMARY KEY,
+    //                 applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    //             )
+    //         `);
             
-            // Check current API migration version
-            let currentVersion = -1;
-            try {
-                const result = await client.query(`
-                    SELECT version FROM ${schema}.api_migrations 
-                    ORDER BY version DESC LIMIT 1
-                `);
-                if (result.rows.length > 0) {
-                    currentVersion = result.rows[0].version;
-                }
-            } catch (error: any) {
-                // Table might not exist yet, continue with version -1
-                console.log("API migrations table not found, starting fresh");
-            }
+    //         // Check current API migration version
+    //         let currentVersion = -1;
+    //         try {
+    //             const result = await client.query(`
+    //                 SELECT version FROM ${schema}.api_migrations 
+    //                 ORDER BY version DESC LIMIT 1
+    //             `);
+    //             if (result.rows.length > 0) {
+    //                 currentVersion = result.rows[0].version;
+    //             }
+    //         } catch (error: any) {
+    //             // Table might not exist yet, continue with version -1
+    //             console.log("API migrations table not found, starting fresh");
+    //         }
             
-            // Apply pending migrations
-            for (let version = currentVersion + 1; version < API_MIGRATIONS.length; version++) {
-                const migration = API_MIGRATIONS[version].replace('{schema}', schema);
-                console.log(`Applying API migration ${version}: ${migration.substring(0, 80)}...`);
+    //         // Apply pending migrations
+    //         for (let version = currentVersion + 1; version < API_MIGRATIONS.length; version++) {
+    //             const migration = API_MIGRATIONS[version].replace('{schema}', schema);
+    //             console.log(`Applying API migration ${version}: ${migration.substring(0, 80)}...`);
                 
-                await client.query(migration);
-                await client.query(`
-                    INSERT INTO ${schema}.api_migrations (version) VALUES ($1)
-                `, [version]);
+    //             await client.query(migration);
+    //             await client.query(`
+    //                 INSERT INTO ${schema}.api_migrations (version) VALUES ($1)
+    //             `, [version]);
                 
-                console.log(`✅ API migration ${version} applied successfully`);
-            }
+    //             console.log(`✅ API migration ${version} applied successfully`);
+    //         }
             
-        } catch (error) {
-            console.error("Error running API migrations:", error);
-            throw error;
-        } finally {
-            client.release();
-        }
-    }
+    //     } catch (error) {
+    //         console.error("Error running API migrations:", error);
+    //         throw error;
+    //     } finally {
+    //         client.release();
+    //     }
+    // }
 
     async clear(): Promise<void> {
         // @ts-ignore - We have access to pool.connect
@@ -103,119 +114,118 @@ export class PostgresSaver extends CorePostgresSaver implements APISaver {
         client.release();
     }
 
-    async copy(threadId: string, newThreadId: string): Promise<void> {
-        // @ts-ignore - We have access to pool.connect
-        const client = await this.pool.connect();
+    // async copy(threadId: string, newThreadId: string): Promise<void> {
+    //     // @ts-ignore - We have access to pool.connect
+    //     const client = await this.pool.connect();
         
-        try {
-            await client.query('BEGIN');
+    //     try {
+    //         await client.query('BEGIN');
             
-            // @ts-ignore - We have access to options.schema
-            const schema = this.options.schema;
+    //         // @ts-ignore - We have access to options.schema
+    //         const schema = this.options.schema;
             
-            // Copy checkpoints - now assuming run_id column exists after migrations
-            await client.query(`
-                INSERT INTO ${schema}.checkpoints (
-                    thread_id, checkpoint_id, run_id, parent_checkpoint_id, 
-                    checkpoint, metadata, checkpoint_ns
-                )
-                SELECT 
-                    $2 as thread_id,
-                    checkpoint_id,
-                    run_id,
-                    parent_checkpoint_id,
-                    checkpoint,
-                    metadata,
-                    REPLACE(checkpoint_ns, $1, $2) as checkpoint_ns
-                FROM ${schema}.checkpoints 
-                WHERE thread_id = $1
-            `, [threadId, newThreadId]);
+    //         await client.query(`
+    //             INSERT INTO ${schema}.checkpoints (
+    //                 thread_id, checkpoint_id, run_id, parent_checkpoint_id, 
+    //                 checkpoint, metadata, checkpoint_ns
+    //             )
+    //             SELECT 
+    //                 $2 as thread_id,
+    //                 checkpoint_id,
+    //                 run_id,
+    //                 parent_checkpoint_id,
+    //                 checkpoint,
+    //                 metadata,
+    //                 checkpoint_ns
+    //             FROM ${schema}.checkpoints 
+    //             WHERE thread_id = $1
+    //             ORDER BY checkpoint_id
+    //         `, [threadId, newThreadId]);
             
-            // Copy checkpoint_blobs
-            await client.query(`
-                INSERT INTO ${schema}.checkpoint_blobs (
-                    thread_id, checkpoint_id, channel, version, type, blob, checkpoint_ns
-                )
-                SELECT 
-                    $2 as thread_id,
-                    checkpoint_id,
-                    channel,
-                    version,
-                    type,
-                    blob,
-                    REPLACE(checkpoint_ns, $1, $2) as checkpoint_ns
-                FROM ${schema}.checkpoint_blobs 
-                WHERE thread_id = $1
-            `, [threadId, newThreadId]);
+    //         await client.query(`
+    //             INSERT INTO ${schema}.checkpoint_blobs (
+    //                 thread_id, channel, version, type, blob, checkpoint_ns
+    //             )
+    //             SELECT 
+    //                 $2 as thread_id,
+    //                 channel,
+    //                 version,
+    //                 type,
+    //                 blob,
+    //                 checkpoint_ns
+    //             FROM ${schema}.checkpoint_blobs 
+    //             WHERE thread_id = $1
+    //             ORDER BY channel, version
+    //         `, [threadId, newThreadId]);
             
-            // Copy checkpoint_writes
-            await client.query(`
-                INSERT INTO ${schema}.checkpoint_writes (
-                    thread_id, checkpoint_id, task_id, idx, channel, type, blob, checkpoint_ns
-                )
-                SELECT 
-                    $2 as thread_id,
-                    checkpoint_id,
-                    task_id,
-                    idx,
-                    channel,
-                    type,
-                    blob,
-                    REPLACE(checkpoint_ns, $1, $2) as checkpoint_ns
-                FROM ${schema}.checkpoint_writes 
-                WHERE thread_id = $1
-            `, [threadId, newThreadId]);
+    //         await client.query(`
+    //             INSERT INTO ${schema}.checkpoint_writes (
+    //                 thread_id, checkpoint_id, task_id, idx, channel, type, blob, checkpoint_ns
+    //             )
+    //             SELECT 
+    //                 $2 as thread_id,
+    //                 checkpoint_id,
+    //                 task_id,
+    //                 idx,
+    //                 channel,
+    //                 type,
+    //                 blob,
+    //                 checkpoint_ns
+    //             FROM ${schema}.checkpoint_writes 
+    //             WHERE thread_id = $1
+    //             ORDER BY checkpoint_id, task_id, idx
+    //         `, [threadId, newThreadId]);
             
-            await client.query('COMMIT');
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
-    }
+    //         await client.query('COMMIT');
+    //     } catch (error) {
+    //         await client.query('ROLLBACK');
+    //         throw error;
+    //     } finally {
+    //         client.release();
+    //     }
+    // }
 
-    async delete(threadId: string, runId: string | null | undefined): Promise<void> {
-        // @ts-ignore - We have access to pool.connect
-        const client = await this.pool.connect();
+    // async delete(threadId: string, runId: string | null | undefined): Promise<void> {
+    //     // @ts-ignore - We have access to pool.connect
+    //     const client = await this.pool.connect();
         
-        try {
-            await client.query('BEGIN');
+    //     try {
+    //         await client.query('BEGIN');
             
-            // @ts-ignore - We have access to options.schema
-            const schema = this.options.schema;
+    //         // @ts-ignore - We have access to options.schema
+    //         const schema = this.options.schema;
             
-            if (runId != null) {
-                // Delete specific run's data
-                await client.query(`DELETE FROM ${schema}.checkpoint_writes WHERE thread_id = $1 AND checkpoint_id IN (
-                    SELECT checkpoint_id FROM ${schema}.checkpoints WHERE thread_id = $1 AND run_id = $2
-                )`, [threadId, runId]);
+    //         if (runId != null) {
+    //             // Delete specific run's data
+    //             await client.query(`DELETE FROM ${schema}.checkpoint_writes WHERE thread_id = $1 AND checkpoint_id IN (
+    //                 SELECT checkpoint_id FROM ${schema}.checkpoints WHERE thread_id = $1 AND run_id = $2
+    //             )`, [threadId, runId]);
                 
-                await client.query(`DELETE FROM ${schema}.checkpoint_blobs WHERE thread_id = $1 AND checkpoint_id IN (
-                    SELECT checkpoint_id FROM ${schema}.checkpoints WHERE thread_id = $1 AND run_id = $2
-                )`, [threadId, runId]);
+    //             // For checkpoint_blobs, we need to delete based on thread_id only since it doesn't have checkpoint_id
+    //             await client.query(`DELETE FROM ${schema}.checkpoint_blobs WHERE thread_id = $1`, [threadId]);
                 
-                await client.query(`DELETE FROM ${schema}.checkpoints WHERE thread_id = $1 AND run_id = $2`, [threadId, runId]);
-            } else {
-                // Delete all data for the thread
-                await client.query(`DELETE FROM ${schema}.checkpoint_writes WHERE thread_id = $1`, [threadId]);
-                await client.query(`DELETE FROM ${schema}.checkpoint_blobs WHERE thread_id = $1`, [threadId]);
-                await client.query(`DELETE FROM ${schema}.checkpoints WHERE thread_id = $1`, [threadId]);
-            }
+    //             await client.query(`DELETE FROM ${schema}.checkpoints WHERE thread_id = $1 AND run_id = $2`, [threadId, runId]);
+    //         } else {
+    //             // Delete all data for the thread
+    //             await client.query(`DELETE FROM ${schema}.checkpoint_writes WHERE thread_id = $1`, [threadId]);
+    //             await client.query(`DELETE FROM ${schema}.checkpoint_blobs WHERE thread_id = $1`, [threadId]);
+    //             await client.query(`DELETE FROM ${schema}.checkpoints WHERE thread_id = $1`, [threadId]);
+    //         }
             
-            await client.query('COMMIT');
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
-        }
-    }
+    //         await client.query('COMMIT');
+    //     } catch (error) {
+    //         await client.query('ROLLBACK');
+    //         throw error;
+    //     } finally {
+    //         client.release();
+    //     }
+    // }
 
     async put(
         config: RunnableConfig,
         checkpoint: Checkpoint,
         metadata: CheckpointMetadata,
+        newVersions: ChannelVersions
     ): Promise<RunnableConfig> {
         // Merge config.metadata with checkpoint metadata, similar to InMemorySaver
         const mergedMetadata = {
@@ -228,7 +238,7 @@ export class PostgresSaver extends CorePostgresSaver implements APISaver {
             ...metadata,
         };
 
-        return await super.put(config, checkpoint, mergedMetadata, {});
+        return await super.put(config, checkpoint, mergedMetadata, newVersions);
     }
 
     toJSON() {
