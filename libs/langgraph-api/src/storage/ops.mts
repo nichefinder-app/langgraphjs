@@ -1124,7 +1124,7 @@ export class Runs {
     const runs = await Runs.storage.where({
       where: {
         status: "pending",
-        created_at: { $le: now }  // Only get runs scheduled for now or earlier
+        created_at: { $lt: now } 
       }
     });
 
@@ -1136,35 +1136,39 @@ export class Runs {
 
     for (const run of pendingRuns) {
       const runId = run.run_id;
-      const threadId = run.thread_id;
-      const thread = await Threads.storage.get({ key: threadId });
-
-      if (!thread) {
-        await console.warn(
-          `Unexpected missing thread in Runs.next: ${threadId}`,
-        );
-        continue;
-      }
-
       if (await StreamManager.isLocked(runId)) continue;
-
-      // First, get all runs to check for running status
-      const isThreadAlreadyRunning = await Runs.storage.where({
-        where: {
-          thread_id: run.thread_id,
-          status: "running",
-        }
-      });
-
-      if (isThreadAlreadyRunning.length > 0) {
-        continue; // Do not yield this run if another run is already running on this thread
-      }
 
       try {
         const signal = await StreamManager.lock(runId);
-        
+
         // If lock failed (returns null), skip this run
         if (signal === null) continue;
+
+        const run = await Runs.storage.get({ key: runId });
+
+        if (!run) continue;
+
+        const threadId = run.thread_id;
+        const thread = await Threads.storage.get({ key: threadId });
+
+        if (!thread) {
+          logger.warn(`Unexpected missing thread in Runs.next: ${threadId}`);
+          continue;
+        }
+
+        // is the run still valid?
+        if (run.status !== "pending") continue;
+
+        const isThreadAlreadyRunning = await Runs.storage.where({
+          where: {
+            thread_id: run.thread_id,
+            status: "running",
+          }
+        });
+
+        if (isThreadAlreadyRunning.length > 0) {
+          continue; // Do not yield this run if another run is already running on this thread
+        }
 
         // Update run status to "running" before yielding
         run.status = "running";
