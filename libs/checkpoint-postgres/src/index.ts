@@ -475,7 +475,7 @@ export class PostgresSaver extends BaseCheckpointSaver {
     config: RunnableConfig,
     checkpoint: Checkpoint,
     metadata: CheckpointMetadata,
-    newVersions: ChannelVersions
+    _newVersions: ChannelVersions
   ): Promise<RunnableConfig> {
     if (config.configurable === undefined) {
       throw new Error(`Missing "configurable" field in "config" param`);
@@ -485,6 +485,7 @@ export class PostgresSaver extends BaseCheckpointSaver {
       checkpoint_ns = "",
       checkpoint_id,
     } = config.configurable;
+
 
     const nextConfig = {
       configurable: {
@@ -501,7 +502,7 @@ export class PostgresSaver extends BaseCheckpointSaver {
         thread_id,
         checkpoint_ns,
         checkpoint.channel_values,
-        newVersions
+        checkpoint.channel_versions  // Use ALL channel versions, not just new ones
       );
       for (const serializedBlob of serializedBlobs) {
         await client.query(
