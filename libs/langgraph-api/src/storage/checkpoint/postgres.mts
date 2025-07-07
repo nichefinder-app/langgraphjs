@@ -185,41 +185,41 @@ export class PostgresSaver extends CorePostgresSaver implements APISaver {
     //     }
     // }
 
-    // async delete(threadId: string, runId: string | null | undefined): Promise<void> {
-    //     // @ts-ignore - We have access to pool.connect
-    //     const client = await this.pool.connect();
+    async delete(threadId: string, runId: string | null | undefined): Promise<void> {
+        // @ts-ignore - We have access to pool.connect
+        const client = await this.pool.connect();
         
-    //     try {
-    //         await client.query('BEGIN');
+        try {
+            await client.query('BEGIN');
             
-    //         // @ts-ignore - We have access to options.schema
-    //         const schema = this.options.schema;
+            // @ts-ignore - We have access to options.schema
+            const schema = this.options.schema;
             
-    //         if (runId != null) {
-    //             // Delete specific run's data
-    //             await client.query(`DELETE FROM ${schema}.checkpoint_writes WHERE thread_id = $1 AND checkpoint_id IN (
-    //                 SELECT checkpoint_id FROM ${schema}.checkpoints WHERE thread_id = $1 AND run_id = $2
-    //             )`, [threadId, runId]);
+            if (runId != null) {
+                // Delete specific run's data
+                await client.query(`DELETE FROM ${schema}.checkpoint_writes WHERE thread_id = $1 AND checkpoint_id IN (
+                    SELECT checkpoint_id FROM ${schema}.checkpoints WHERE thread_id = $1 AND run_id = $2
+                )`, [threadId, runId]);
                 
-    //             // For checkpoint_blobs, we need to delete based on thread_id only since it doesn't have checkpoint_id
-    //             await client.query(`DELETE FROM ${schema}.checkpoint_blobs WHERE thread_id = $1`, [threadId]);
+                // For checkpoint_blobs, we need to delete based on thread_id only since it doesn't have checkpoint_id
+                await client.query(`DELETE FROM ${schema}.checkpoint_blobs WHERE thread_id = $1`, [threadId]);
                 
-    //             await client.query(`DELETE FROM ${schema}.checkpoints WHERE thread_id = $1 AND run_id = $2`, [threadId, runId]);
-    //         } else {
-    //             // Delete all data for the thread
-    //             await client.query(`DELETE FROM ${schema}.checkpoint_writes WHERE thread_id = $1`, [threadId]);
-    //             await client.query(`DELETE FROM ${schema}.checkpoint_blobs WHERE thread_id = $1`, [threadId]);
-    //             await client.query(`DELETE FROM ${schema}.checkpoints WHERE thread_id = $1`, [threadId]);
-    //         }
+                await client.query(`DELETE FROM ${schema}.checkpoints WHERE thread_id = $1 AND run_id = $2`, [threadId, runId]);
+            } else {
+                // Delete all data for the thread
+                await client.query(`DELETE FROM ${schema}.checkpoint_writes WHERE thread_id = $1`, [threadId]);
+                await client.query(`DELETE FROM ${schema}.checkpoint_blobs WHERE thread_id = $1`, [threadId]);
+                await client.query(`DELETE FROM ${schema}.checkpoints WHERE thread_id = $1`, [threadId]);
+            }
             
-    //         await client.query('COMMIT');
-    //     } catch (error) {
-    //         await client.query('ROLLBACK');
-    //         throw error;
-    //     } finally {
-    //         client.release();
-    //     }
-    // }
+            await client.query('COMMIT');
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
 
     async put(
         config: RunnableConfig,
