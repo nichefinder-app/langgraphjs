@@ -79,4 +79,9 @@ export class InMemoryStore extends BaseMemoryStore implements StoreInterface {
     // No-op for memory store
     return Promise.resolve();
   }
+
+  async end(): Promise<void> {
+    // No-op for memory store
+    return Promise.resolve();
+  }
 }

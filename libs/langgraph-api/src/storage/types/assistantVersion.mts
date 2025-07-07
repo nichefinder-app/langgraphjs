@@ -1,5 +1,5 @@
-import { Metadata } from "./metadata.mts";
-import { RunnableConfig } from "./runnableConfig.mts";
+import { Metadata } from "./metadata.mjs";
+import { RunnableConfig } from "./runnableConfig.mjs";
 
 export interface AssistantVersion {
   assistant_id: string;

@@ -16,7 +16,7 @@ import { checkpointer } from "./checkpoint.mjs";
 import { store } from "./store.mjs";
 import { StorageOps } from "./ops/index.mjs";
 import { Thread } from "./types/thread.mjs";
-import type { SEARCH_OPTIONS } from "./ops/ops_adapter.mjs";
+import type { SEARCH_OPTIONS } from "./ops/types.mjs";
 import type { Metadata, OnConflictBehavior } from "./types/index.mjs";
 import type { RunStatus, StreamMode, MultitaskStrategy, RunKwargs, Run } from "./types/run.mjs";
 import type { RunnableConfig } from "./types/runnableConfig.mjs";
@@ -27,6 +27,8 @@ import { ABORT_ACTION } from "./stream/types.mjs";
 export type ThreadStatus = "idle" | "busy" | "interrupted" | "error";
 export type IfNotExists = "create" | "reject";
 export type { RunnableConfig };
+export type { Run, RunKwargs, RunStatus, MultitaskStrategy, StreamMode } from "./types/run.mjs";
+export type { Metadata } from "./types/index.mjs";
 
 interface Assistant {
   name: string | undefined;
