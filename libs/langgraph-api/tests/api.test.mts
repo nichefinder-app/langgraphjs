@@ -592,7 +592,7 @@ describe("threads copy", () => {
     expect(currentOriginalThreadState).toEqual(originalThreadState);
   });
 
-  it.only.concurrent("get thread history", async () => {
+  it.concurrent("get thread history", async () => {
     const assistant = await client.assistants.create({ graphId: "agent" });
     const thread = await client.threads.create();
     const input = { messages: [{ type: "human", content: "foo" }] };
@@ -2336,7 +2336,7 @@ describe("multitasking", () => {
     expect(state.values.messages.at(0)?.content).toBe("bar");
   });
 
-  it("multitasking enqueue", { timeout: 8_000, retry: 3 }, async () => {
+  it.only("multitasking enqueue", { timeout: 8_000, retry: 3 }, async () => {
     const assistant = await client.assistants.create({ graphId: "agent" });
     const thread = await client.threads.create();
 
