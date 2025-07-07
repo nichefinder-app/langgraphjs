@@ -1144,10 +1144,6 @@ export class Runs {
         // If lock failed (returns null), skip this run
         if (signal === null) continue;
 
-        const run = await Runs.storage.get({ key: runId });
-
-        if (!run) continue;
-
         const threadId = run.thread_id;
         const thread = await Threads.storage.get({ key: threadId });
 
