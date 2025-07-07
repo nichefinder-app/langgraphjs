@@ -1307,7 +1307,7 @@ export class Runs {
     const inflightRuns: Run[] = await Runs.storage.where({ 
       where: {
         thread_id: threadId,
-        status: "pending"
+        status: ["pending", "running"]
       }
     })
 
@@ -1685,7 +1685,7 @@ export class Runs {
             if (!options?.ignore404)
               yield { event: "error", data: "Run not found" };
             break;
-          } else if (run.status !== "pending") {
+          } else if (run.status !== "pending" && run.status !== "running") {
             break;
           }
         }
