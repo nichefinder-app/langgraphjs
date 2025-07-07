@@ -114,76 +114,76 @@ export class PostgresSaver extends CorePostgresSaver implements APISaver {
         client.release();
     }
 
-    // async copy(threadId: string, newThreadId: string): Promise<void> {
-    //     // @ts-ignore - We have access to pool.connect
-    //     const client = await this.pool.connect();
+    async copy(threadId: string, newThreadId: string): Promise<void> {
+        // @ts-ignore - We have access to pool.connect
+        const client = await this.pool.connect();
         
-    //     try {
-    //         await client.query('BEGIN');
+        try {
+            await client.query('BEGIN');
             
-    //         // @ts-ignore - We have access to options.schema
-    //         const schema = this.options.schema;
+            // @ts-ignore - We have access to options.schema
+            const schema = this.options.schema;
             
-    //         await client.query(`
-    //             INSERT INTO ${schema}.checkpoints (
-    //                 thread_id, checkpoint_id, run_id, parent_checkpoint_id, 
-    //                 checkpoint, metadata, checkpoint_ns
-    //             )
-    //             SELECT 
-    //                 $2 as thread_id,
-    //                 checkpoint_id,
-    //                 run_id,
-    //                 parent_checkpoint_id,
-    //                 checkpoint,
-    //                 metadata,
-    //                 checkpoint_ns
-    //             FROM ${schema}.checkpoints 
-    //             WHERE thread_id = $1
-    //             ORDER BY checkpoint_id
-    //         `, [threadId, newThreadId]);
+            await client.query(`
+                INSERT INTO ${schema}.checkpoints (
+                    thread_id, checkpoint_id, run_id, parent_checkpoint_id, 
+                    checkpoint, metadata, checkpoint_ns
+                )
+                SELECT 
+                    $2 as thread_id,
+                    checkpoint_id,
+                    run_id,
+                    parent_checkpoint_id,
+                    checkpoint,
+                    metadata,
+                    checkpoint_ns
+                FROM ${schema}.checkpoints 
+                WHERE thread_id = $1
+                ORDER BY checkpoint_id
+            `, [threadId, newThreadId]);
             
-    //         await client.query(`
-    //             INSERT INTO ${schema}.checkpoint_blobs (
-    //                 thread_id, channel, version, type, blob, checkpoint_ns
-    //             )
-    //             SELECT 
-    //                 $2 as thread_id,
-    //                 channel,
-    //                 version,
-    //                 type,
-    //                 blob,
-    //                 checkpoint_ns
-    //             FROM ${schema}.checkpoint_blobs 
-    //             WHERE thread_id = $1
-    //             ORDER BY channel, version
-    //         `, [threadId, newThreadId]);
+            await client.query(`
+                INSERT INTO ${schema}.checkpoint_blobs (
+                    thread_id, channel, version, type, blob, checkpoint_ns
+                )
+                SELECT 
+                    $2 as thread_id,
+                    channel,
+                    version,
+                    type,
+                    blob,
+                    checkpoint_ns
+                FROM ${schema}.checkpoint_blobs 
+                WHERE thread_id = $1
+                ORDER BY channel, version
+            `, [threadId, newThreadId]);
             
-    //         await client.query(`
-    //             INSERT INTO ${schema}.checkpoint_writes (
-    //                 thread_id, checkpoint_id, task_id, idx, channel, type, blob, checkpoint_ns
-    //             )
-    //             SELECT 
-    //                 $2 as thread_id,
-    //                 checkpoint_id,
-    //                 task_id,
-    //                 idx,
-    //                 channel,
-    //                 type,
-    //                 blob,
-    //                 checkpoint_ns
-    //             FROM ${schema}.checkpoint_writes 
-    //             WHERE thread_id = $1
-    //             ORDER BY checkpoint_id, task_id, idx
-    //         `, [threadId, newThreadId]);
+            await client.query(`
+                INSERT INTO ${schema}.checkpoint_writes (
+                    thread_id, checkpoint_id, task_id, idx, channel, type, blob, checkpoint_ns
+                )
+                SELECT 
+                    $2 as thread_id,
+                    checkpoint_id,
+                    task_id,
+                    idx,
+                    channel,
+                    type,
+                    blob,
+                    checkpoint_ns
+                FROM ${schema}.checkpoint_writes 
+                WHERE thread_id = $1
+                ORDER BY checkpoint_id, task_id, idx
+            `, [threadId, newThreadId]);
             
-    //         await client.query('COMMIT');
-    //     } catch (error) {
-    //         await client.query('ROLLBACK');
-    //         throw error;
-    //     } finally {
-    //         client.release();
-    //     }
-    // }
+            await client.query('COMMIT');
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
 
     async delete(threadId: string, runId: string | null | undefined): Promise<void> {
         // @ts-ignore - We have access to pool.connect
