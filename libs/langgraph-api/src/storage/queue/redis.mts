@@ -29,7 +29,8 @@ export class RedisQueue implements QueueInterface {
   }
 
   async cleanup(): Promise<boolean> {
-    const result = await this.redis.del(this.queueKey);
+    const counterKey = `counter:${this.queueKey}`;
+    const result = await this.redis.del(this.queueKey, counterKey);
     return result > 0;
   }
 
@@ -68,7 +69,6 @@ export class RedisQueue implements QueueInterface {
     }
     
     try {
-      // We no longer need Promise.race. We await the Redis command directly.
       const redisPromise = this.resumable
         ? this.getFromStream(blocker, options)
         : this.getFromList(blocker, options);
@@ -136,8 +136,12 @@ export class RedisQueue implements QueueInterface {
 
     const [, serialized] = response;
     const messageData: any = await deserialize(serialized);
-    const id = String(Date.now()); 
-
+    
+    // Use Redis INCR to get sequential IDs
+    const counterKey = `counter:${this.queueKey}`;
+    const nextId = await this.redis.incr(counterKey);
+    const id = String(nextId - 1); // Start from 0
+    
     return [id, messageData];
   }
 }

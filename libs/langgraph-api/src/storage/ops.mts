@@ -501,7 +501,6 @@ export class Assistants {
     return versions;
   }
 
-  // DONE
   static async truncate(full: boolean = false) {
     if (full) {
       // For full truncate, just delete everything without searching for system assistants
