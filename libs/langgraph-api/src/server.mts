@@ -9,7 +9,8 @@ import assistants from "./api/assistants.mjs";
 import store from "./api/store.mjs";
 import meta from "./api/meta.mjs";
 
-import { truncate, conn as opsConn } from "./storage/ops.mjs";
+import { truncate } from "./storage/ops.mjs";
+import { persistence } from "./storage/config.mjs";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { queue } from "./queue.mjs";
@@ -77,7 +78,7 @@ export async function startServer(options: z.infer<typeof StartServerSchema>) {
 
   logger.info(`Initializing storage...`);
   const callbacks = await Promise.all([
-    opsConn.initialize(options.cwd),
+    persistence.initialize(options.cwd),
     checkpointer.initialize(options.cwd),
     graphStore.initialize(options.cwd),
   ]);
@@ -105,13 +106,17 @@ export async function startServer(options: z.infer<typeof StartServerSchema>) {
         assistants: z.boolean().optional(),
         checkpointer: z.boolean().optional(),
         store: z.boolean().optional(),
+        full: z.boolean().default(false),
       })
     ),
-    (c) => {
-      const { runs, threads, assistants, checkpointer, store } =
+    async (c) => {
+      const { runs, threads, assistants, checkpointer, store, full } =
         c.req.valid("json");
 
-      truncate({ runs, threads, assistants, checkpointer, store });
+      await truncate({ runs, threads, assistants, checkpointer, store, full });
+      if (assistants && full) {
+        await registerFromEnv(options.graphs, { cwd: options.cwd })
+      }
       return c.json({ ok: true });
     }
   );
