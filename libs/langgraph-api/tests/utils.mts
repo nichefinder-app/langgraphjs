@@ -3,6 +3,7 @@ import type { PersistenceType } from '../src/storage/config.mts';
 import { randomUUID } from "crypto";
 import type { AuthContext } from "../src/auth/index.mjs";
 import { Assistants, Threads } from "../src/storage/ops.mjs";
+import type { RunKwargs } from "../src/storage/types/run.mjs";
 
 export type QueueType = "memory" | "redis";
 export const QueueTypes: QueueType[] = ["memory", "redis"];

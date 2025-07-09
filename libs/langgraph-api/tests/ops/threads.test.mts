@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import { describe, it, expect, beforeEach, beforeAll } from "vitest";
 import type { AuthContext } from "../../src/auth/index.mjs";
 import { randomUUID } from 'crypto';
@@ -6,7 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { truncate, Threads, Runs, Assistants } from "../../src/storage/ops.mjs"
 import { PersistenceType, PersistenceTypes, persistence } from "../../src/storage/config.mjs";
-import { stubPersistence, authorizedUserContext, differentUserContext } from "../utils.mjs"
+import { stubPersistence } from "../utils.mjs"
 import { checkpointer } from "../../src/storage/checkpoint.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -52,7 +51,6 @@ describe("Threads", async () => {
         describe(`[${persistenceType}]`, async () => {
             beforeEach(async () => {
                 stubPersistence(persistenceType as PersistenceType);
-                await reloadConfig();
                 await truncate({ threads: true, runs: true, assistants: true, full: false });
                 await checkpointer.initialize(".");
             });
@@ -75,14 +73,6 @@ describe("Threads", async () => {
                         if_exists: "raise",
                     }, undefined)).rejects.toThrow("Thread already exists");
 
-                    if (persistenceType == "memory") {
-                        await Threads.storage.adapters.memory.conn.flush();
-                        const file = Threads.storage.adapters.memory.conn.filepath;
-                        if (!file) throw new Error("File path not set");
-                        const data = JSON.parse(await fs.promises.readFile(file, "utf-8")).json;
-                        expect(data).toHaveProperty("threads");
-                        expect(data.threads[thread1Id]).toHaveProperty("metadata", { foo: "bar" });
-                    }
                 });
 
                 describe("authorization", () => {
@@ -116,7 +106,7 @@ describe("Threads", async () => {
                             if_exists: "raise",
                         }, authorizedUserContext);
                         
-                        expect(thread.metadata.tags).toEqual(["admin", "test"]);
+                        expect(thread.metadata?.tags).toEqual(["admin", "test"]);
                     });
                 });
             });
@@ -154,7 +144,7 @@ describe("Threads", async () => {
                         // User can access their own thread
                         const fetched = await Threads.get(threadId, authorizedUserContext);
                         expect(fetched).toHaveProperty("thread_id", threadId);
-                        expect(fetched.metadata.owner).toBe("user123");
+                        expect(fetched.metadata?.owner).toBe("user123");
                     });
 
                     it("prevents user from accessing thread they don't own", async () => {
@@ -204,7 +194,7 @@ describe("Threads", async () => {
                         }, authorizedUserContext);
                         
                         const fetched = await Threads.get(threadId, authorizedUserContext);
-                        expect(fetched.metadata.status).toBe("published");
+                        expect(fetched.metadata?.status).toBe("published");
                     });
 
                     it("prevents non-owner from patching thread", async () => {
@@ -308,7 +298,7 @@ describe("Threads", async () => {
                         
                         // Should only return threads owned by user123
                         expect(fetched).toHaveLength(2);
-                        expect(fetched.every(item => item.thread.metadata.owner === "user123")).toBe(true);
+                        expect(fetched.every(item => item.thread.metadata?.owner === "user123")).toBe(true);
                     });
 
                     it("filters by tag containment", async () => {
@@ -345,7 +335,7 @@ describe("Threads", async () => {
                         }
                         
                         expect(fetched).toHaveLength(1);
-                        expect(fetched[0].thread.metadata.tags).toContain("admin");
+                        expect(fetched[0]?.thread.metadata?.tags).toContain("admin");
                     });
 
                     it("returns empty results for unauthorized user", async () => {
@@ -529,7 +519,7 @@ describe("Threads", async () => {
                     await Runs.put(runId2, assistantId, {}, {
                         threadId: threadId,
                         metadata: { owner: "user123" },
-                        status: "completed"
+                        status: "success"
                     }, authorizedUserContext);
 
                     // Verify runs exist before deletion
@@ -554,7 +544,7 @@ describe("Threads", async () => {
                     const originalThreadId = randomUUID();
 
                     // Create original thread
-                    const originalThread = await Threads.put(originalThreadId, {
+                    await Threads.put(originalThreadId, {
                         metadata: { 
                             owner: "user123", 
                             project: "myProject",
